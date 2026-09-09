@@ -1,0 +1,2165 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Евгений Демин — Международные расчёты</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    :root {
+      color-scheme: light;
+      --bg:      #f3efe9;
+      --paper:   #ffffff;
+      --sunk:    #f2ede5;
+      --line:    #e6ded2;
+      --line-2:  #f0e9df;
+      --ink:     #241a14;
+      --ink-2:   #55483e;
+      --ink-3:   #827365;
+      --red:     #c2352b;
+      --red-2:   #d6281f;
+      --red-ink: #96271f;
+      --vtb:     #0a2896;
+      --green:   #1c7a4d;
+      --gold:    #9a6a24;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif; color: var(--ink);
+      background-color: var(--bg);
+      background-image:
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n' x='0' y='0'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(%23n)' opacity='0.30'/></svg>"),
+        radial-gradient(1000px 560px at 10% -6%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 62%),
+        radial-gradient(900px 500px at 92% 4%, rgba(194,53,43,0.05) 0%, rgba(0,0,0,0) 60%);
+      background-repeat: repeat, no-repeat, no-repeat;
+      overflow-x: hidden;
+    }
+    #root { min-height: 100svh; }
+    img, video, svg { max-width: 100%; }
+
+    .wrap {
+      width: 100%; max-width: 1780px; margin-left: auto; margin-right: auto;
+      padding-left: clamp(12px, 2vw, 34px); padding-right: clamp(12px, 2vw, 34px);
+    }
+    /* секции больше не растягиваются на экран — сайт стал заметно короче */
+    .slide { position: relative; width: 100%; padding-top: 40px; padding-bottom: 40px; }
+    @media (min-width: 1024px) { .slide { padding-top: 52px; padding-bottom: 52px; } }
+
+    /* ---------- рельеф ---------- */
+    .card {
+      background: linear-gradient(180deg, #ffffff 0%, #fdfbf7 100%);
+      border: 1px solid var(--line);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(70,50,34,0.05), 0 10px 26px -16px rgba(70,50,34,0.28);
+    }
+    .card-soft {
+      background: linear-gradient(180deg, #fdfbf7 0%, #f9f5ef 100%);
+      border: 1px solid var(--line-2);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 6px 18px -14px rgba(70,50,34,0.26);
+    }
+    .sunken {
+      background: linear-gradient(180deg, #f0eae1 0%, #faf7f2 70%);
+      border: 1px solid var(--line);
+      box-shadow: inset 0 2px 4px rgba(90,66,44,0.08), inset 0 -1px 0 rgba(255,255,255,0.85);
+    }
+    .emboss { box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 3px rgba(70,50,34,0.06), 0 16px 36px -22px rgba(70,50,34,0.34); }
+    /* единый внутренний отступ карточек — компактный */
+    .pad { padding: 13px; }
+    @media (min-width: 640px) { .pad { padding: 16px; } }
+
+    .ink { color: var(--ink); } .ink-2 { color: var(--ink-2); } .ink-3 { color: var(--ink-3); }
+    .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+    /* ---------- строки без наложений ---------- */
+    .row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .row > .row-l { min-width: 0; flex: 1 1 auto; }
+    .row > .row-r { flex: 0 0 auto; text-align: right; }
+
+    /* ---------- поля ---------- */
+    .fld {
+      width: 100%; border-radius: 10px; padding: 8px 11px; color: var(--ink);
+      background: #fffdfa; border: 1px solid var(--line); outline: none;
+      box-shadow: inset 0 2px 4px rgba(90,66,44,0.06); font-size: 14px; font-family: inherit;
+    }
+    .fld:focus { border-color: rgba(194,53,43,0.55); box-shadow: inset 0 2px 4px rgba(90,66,44,0.05), 0 0 0 3px rgba(194,53,43,0.10); }
+    select.fld { appearance: none; -webkit-appearance: none; padding-right: 30px;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2382736f' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+      background-repeat: no-repeat; background-position: right 9px center; }
+    .fld-big { font-size: 20px; font-weight: 600; padding: 9px 38px 9px 12px; }
+    input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
+    input[type="range"] { height: 22px; accent-color: #0a2896; }
+    label { cursor: pointer; }
+
+    /* ---------- кнопки ---------- */
+    .btn-dark { background: linear-gradient(180deg, #3a2a20 0%, #241a14 100%); color: #fdf6ec; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 8px 20px -14px rgba(36,26,20,0.9); }
+    .btn-dark:hover { background: linear-gradient(180deg, #4a3628 0%, #31241b 100%); }
+    .btn-red { background: linear-gradient(180deg, #d33a2f 0%, #bd2f26 100%); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 8px 20px -14px rgba(189,47,38,0.9); }
+    .btn-red:hover { filter: brightness(1.06); }
+    .btn-ghost { background: rgba(255,255,255,0.75); border: 1px solid var(--line); color: var(--ink-2); box-shadow: inset 0 1px 0 rgba(255,255,255,0.9); }
+    .btn-ghost:hover { background: #fff; color: var(--ink); }
+
+    /* ---------- вкладки калькулятора ---------- */
+    .tab {
+      position: relative; text-align: left; border-radius: 12px; padding: 9px 11px;
+      background: linear-gradient(180deg, #fbf7f1 0%, #f4efe7 100%);
+      border: 1px solid var(--line); color: var(--ink-2);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+      transition: transform .16s ease, box-shadow .16s ease, background .16s ease, color .16s ease;
+    }
+    .tab:hover { background: #fffdfa; color: var(--ink); transform: translateY(-1px); }
+    .tab.on {
+      background: linear-gradient(180deg, #ffffff 0%, #fffaf6 100%);
+      border-color: rgba(194,53,43,0.42); color: var(--ink);
+      box-shadow: inset 0 1px 0 #fff, 0 0 0 3px rgba(194,53,43,0.10), 0 12px 26px -18px rgba(70,50,34,0.55);
+    }
+
+    /* ---------- бренд-карточки ---------- */
+    .c-vtb  { background: linear-gradient(180deg, #eff2fc 0%, #ffffff 62%); border: 1px solid #c8d2ee; }
+    .c-alfa { background: linear-gradient(180deg, #fdeeec 0%, #ffffff 62%); border: 1px solid #f2c6bf; }
+    .c-gold { background: linear-gradient(180deg, #fbf2e2 0%, #ffffff 62%); border: 1px solid #ead6b4; }
+    .win-red  { border-color: #d6281f; box-shadow: 0 0 0 3px rgba(214,40,31,0.14), 0 12px 28px -20px rgba(70,50,34,0.5); }
+    .win-vtb  { border-color: #0a2896; box-shadow: 0 0 0 3px rgba(10,40,150,0.13), 0 12px 28px -20px rgba(70,50,34,0.5); }
+    .win-gold { border-color: #b3862f; box-shadow: 0 0 0 3px rgba(179,134,47,0.16), 0 12px 28px -20px rgba(70,50,34,0.5); }
+
+    .kp-pre {
+      white-space: pre-wrap; overflow-wrap: anywhere;
+      font-size: 13px; line-height: 1.62; color: var(--ink-2);
+      max-height: min(44vh, 440px); overflow-y: auto; -webkit-overflow-scrolling: touch;
+    }
+    @media (max-width: 1023px) { .kp-pre { max-height: 260px; } }
+    .kp-tall .kp-pre { max-height: min(66vh, 760px); }
+    @media (max-width: 1023px) { .kp-tall .kp-pre { max-height: 320px; } }
+    .bank-cols { column-count: 1; column-gap: 22px; }
+    @media (min-width: 640px)  { .bank-cols { column-count: 2; } }
+    @media (min-width: 1280px) { .bank-cols { column-count: 3; } }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+    .fu { animation: fadeUp .55s cubic-bezier(.2,.75,.2,1) both; }
+    .rise { opacity: 0; transform: translateY(16px); transition: opacity .55s ease-out, transform .6s cubic-bezier(.2,.75,.2,1); }
+    .rise.in { opacity: 1; transform: none; }
+    @keyframes pulseDot { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+    .pulse { animation: pulseDot 1.8s ease-in-out infinite; }
+
+    a, button { -webkit-tap-highlight-color: rgba(0,0,0,0.06); }
+    ::selection { background: rgba(194,53,43,0.16); }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .fu, .pulse { animation: none; }
+      .rise { opacity: 1; transform: none; transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/plain" id="app-src">
+    const { useState, useRef, useEffect } = React;
+
+    function Svg({ size = 24, className = "", fill = "none", stroke = "currentColor", style, children }) {
+      return (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>{children}</svg>);
+    }
+    const IcGlobe   = (p) => <Svg {...p}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></Svg>;
+    const IcShield  = (p) => <Svg {...p}><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></Svg>;
+    const IcPercent = (p) => <Svg {...p}><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></Svg>;
+    const IcSwap    = (p) => <Svg {...p}><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></Svg>;
+    const IcFile    = (p) => <Svg {...p}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9 15 2 2 4-4"/></Svg>;
+    const IcSend    = (p) => <Svg {...p}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></Svg>;
+    const IcPhone   = (p) => <Svg {...p}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></Svg>;
+    const IcArrow   = (p) => <Svg {...p}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></Svg>;
+    const IcLeft    = (p) => <Svg {...p}><polyline points="15 18 9 12 15 6"/></Svg>;
+    const IcRight   = (p) => <Svg {...p}><polyline points="9 18 15 12 9 6"/></Svg>;
+    const IcDown    = (p) => <Svg {...p}><polyline points="6 9 12 15 18 9"/></Svg>;
+    const IcMenu    = (p) => <Svg {...p}><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></Svg>;
+    const IcX       = (p) => <Svg {...p}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Svg>;
+    const IcAlert   = (p) => <Svg {...p}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></Svg>;
+    const IcCalc    = (p) => <Svg {...p}><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14v4"/><path d="M8 18h.01"/><path d="M12 18h.01"/></Svg>;
+    const IcExt     = (p) => <Svg {...p}><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></Svg>;
+    const IcInfo    = (p) => <Svg {...p}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></Svg>;
+    const IcSun     = (p) => <Svg {...p}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></Svg>;
+    const IcRefresh = (p) => <Svg {...p}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></Svg>;
+    const IcInflow  = (p) => <Svg {...p}><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></Svg>;
+    const IcTrend   = (p) => <Svg {...p}><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></Svg>;
+    const IcDown2   = (p) => <Svg {...p}><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></Svg>;
+    const IcBank    = (p) => <Svg {...p}><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></Svg>;
+    const IcCheck   = (p) => <Svg {...p}><polyline points="20 6 9 17 4 12"/></Svg>;
+    const IcScale   = (p) => <Svg {...p}><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></Svg>;
+    const IcChart   = (p) => <Svg {...p}><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></Svg>;
+    const IcTrophy  = (p) => <Svg {...p}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></Svg>;
+    const IcCopy    = (p) => <Svg {...p}><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></Svg>;
+    const IcDoc     = (p) => <Svg {...p}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="14" y2="17"/></Svg>;
+    const IcMap     = (p) => <Svg {...p}><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></Svg>;
+    const IcTag     = (p) => <Svg {...p}><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/></Svg>;
+    const IcZap     = (p) => <Svg {...p}><path d="M4 14h7l-2 8 9-12h-7l2-8z"/></Svg>;
+    const IcLayers  = (p) => <Svg {...p}><path d="m12 2 9 5-9 5-9-5 9-5z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></Svg>;
+    const IcClock   = (p) => <Svg {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></Svg>;
+    const IcLock    = (p) => <Svg {...p}><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></Svg>;
+    const IcEdit    = (p) => <Svg {...p}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></Svg>;
+
+    const TG = "https://t.me/edemin4";
+    const PHONE = "tel:+79041139349";
+    const PHONE_DISPLAY = "+7 904 113-93-49";
+    const PHONE_TITLE = "Телефон и мессенджер MAX: " + PHONE_DISPLAY;
+    const INVESTING = "https://ru.investing.com/currencies/usd-rub";
+    const MOEX_LINK = "https://www.moex.com/ru/issue.aspx?board=CETS&code=CNYRUB_TOM";
+    const SIGN = ["Евгений Демин", "Международные расчёты"];
+    const PROMO_UNTIL = "31 декабря 2026 года";
+    const PROMO_SHORT = "до конца года";
+
+    /* ====== ССЫЛКИ: работают и внутри iframe (Google Sites и т.п.) ====== */
+    function goTo(e, id) {
+      if (e && e.preventDefault) e.preventDefault();
+      const el = document.getElementById(id);
+      if (!el) return;
+      try { el.scrollIntoView({ behavior: "smooth", block: "start" }); }
+      catch (_) { try { el.scrollIntoView(); } catch (__) {} }
+    }
+    function openUrl(e, url) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (!url) return;
+      if (url.indexOf("tel:") === 0 || url.indexOf("mailto:") === 0) {
+        try { window.location.href = url; return; } catch (_) {}
+        try { if (window.top !== window.self) window.top.location.href = url; } catch (_) {}
+        return;
+      }
+      let w = null;
+      try { w = window.open(url, "_blank", "noopener,noreferrer"); } catch (_) {}
+      if (w) { try { w.opener = null; } catch (_) {} return; }
+      try { if (window.top !== window.self) { window.top.location.href = url; return; } } catch (_) {}
+      try { window.location.href = url; } catch (_) {}
+    }
+    function Ext({ href, className, style, title, label, children }) {
+      return (<a href={href} target="_blank" rel="noopener noreferrer" title={title} aria-label={label}
+        className={className} style={style} onClick={(e) => openUrl(e, href)}>{children}</a>);
+    }
+    function Jump({ to, className, style, onDone, children }) {
+      return (<a href={"#" + to} className={className} style={style}
+        onClick={(e) => { goTo(e, to); if (onDone) onDone(); }}>{children}</a>);
+    }
+
+    const nf0 = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 });
+    const nf2 = new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+    const nf4 = new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+    const rub = (x) => nf0.format(Math.round(x)) + ' ₽';
+    const cur = (x) => nf0.format(Math.round(x));
+    const cny = (x) => nf0.format(Math.round(x)) + ' ¥';
+    const rate = (x) => nf2.format(x) + ' ₽';
+    const rate4 = (x) => nf4.format(x) + ' ₽';
+    const parseNum = (s, f) => { const v = parseFloat(String(s).replace(/\s/g,'').replace(',', '.')); return (isFinite(v) && v >= 0) ? v : f; };
+    const pctStr = (x, d) => x.toFixed(d === undefined ? 2 : d).replace(".", ",") + "%";
+
+    /* ================= ТАРИФЫ. АКЦИЯ ДО КОНЦА ГОДА ================= */
+    const IMPORT_TIERS = [
+      { range: "до $10 000",             now: "1,4% + $100", was: "1,7% + $100", jan: "2,2% + $100", lo: 0,      hi: 10000,    pct: 0.014, fix: 100 },
+      { range: "от $10 000 до $50 000",  now: "1,4%",        was: "1,7%",        jan: "2,2%",        lo: 10000,  hi: 50000,    pct: 0.014, fix: 0 },
+      { range: "от $50 000 до $100 000", now: "1,0%",        was: "1,5%",        jan: "1,9%",        lo: 50000,  hi: 100000,   pct: 0.010, fix: 0 },
+      { range: "от $100 000",            now: "0,8%",        was: "1,2%",        jan: "1,5%",        lo: 100000, hi: Infinity, pct: 0.008, fix: 0 },
+    ];
+    const tierFor = (usd) => IMPORT_TIERS.find((t) => usd >= t.lo && usd < t.hi) || IMPORT_TIERS[IMPORT_TIERS.length - 1];
+    const VC_PCT = 0.002,  VC_MIN = 1200;      // валютный контроль
+    const FA_PCT = 0.0015, FA_MIN = 1000;      // перевод финансовому агенту
+    const EXPORT_PCT = 0.002;                  // экспорт: 0,2% на все суммы, было 0,5%
+    const CLEARING_PCT = 0.005, CLEARING_MIN = 20000;   // клиринг ФА-резидент: 0,5%, мин. 20 000 ₽
+    const CN_CLEARING = "от 0,1 до 0,9%";               // сколько получатель в КНР платит финагенту при клиринге
+    const CN_DANDONG  = "0%";                           // Bank of Dandong: с получателя ничего
+    const CN_VTB      = "1–1,2%";                        // ВТБ Шанхай удерживает с китайской стороны
+    const DANDONG_PCT = 0.008, DANDONG_MIN = 3000;      // Bank of Dandong: перевод 0,8%, мин. 3 000 ₽
+    const DANDONG_CAP = 0.018;                          // всё вместе: контроль + конвертация + перевод, не более 1,8%
+    const FX_MARKUP = 0.01;                             // наш курс AlfaFX: биржа плюс 1 копейка на юань
+    /* прямой платёж в Bank of Dandong: юань по нашему курсу, перевод 0,8%, всё вместе не более 1,8% */
+    function dandongCalc(n, Rmoex) {
+      const base = n * Rmoex;
+      const mk = n * FX_MARKUP;
+      const tr = Math.max(base * DANDONG_PCT, DANDONG_MIN);
+      const rest = Math.max(0, base * DANDONG_CAP - mk - tr);
+      const comm = mk + tr + rest;
+      return { base, mk, tr, rest, comm, total: base + comm, pct: base > 0 ? (comm / base) * 100 : 0 };
+    }
+    /* подбор объёма под бюджет: делим пополам, пока итог не сойдётся */
+    function solveByBudget(budget, totalFor, hi) {
+      let lo = 0, top = hi;
+      for (let i = 0; i < 60; i++) { const mid = (lo + top) / 2; if (totalFor(mid) > budget) top = mid; else lo = mid; }
+      return lo;
+    }
+    const SH_PAY = 0.0199, SH_VC = 0.002;               // ВТБ Шанхай при отправке
+    const ALFA_MARKUP = 0.01, ALFA_CONV = 0.006, ALFA_TRANSFER = 0.003;
+    const MARKUPS = [0.14, 0.20, 0.25];
+    const VTB_BLUE = "#0a2896", ALFA_RED = "#d6281f", GOLD = "#9a6a24", GREEN = "#1c7a4d";
+    const PROVINCES = ["Шаньдун","Сычуань","Хэйлунцзян","Цзилинь","Чжэцзян","Хэбэй","Аньхой","Гуандун","Цзянсу","Шэньси","Хэнань","Фуцзянь","Синьцзян","Внутренняя Монголия"];
+    const CITIES = ["Пекин", "Шанхай"];
+
+    /* ================= ДАННЫЕ КУРСОВ ================= */
+    const FALLBACK = { USD: 84.54, EUR: 98.60, CNY: 12.47 };
+    function useCbr() {
+      const [rates, setRates] = useState(FALLBACK);
+      const [cbrDate, setCbrDate] = useState(null);
+      const [status, setStatus] = useState("loading");
+      useEffect(() => {
+        let alive = true;
+        fetch("https://www.cbr-xml-daily.ru/daily_json.js", { cache: "no-store" }).then((r) => r.json()).then((j) => {
+          if (!alive) return;
+          const g = (k) => j.Valute[k].Value / j.Valute[k].Nominal;
+          setRates({ USD: g("USD"), EUR: g("EUR"), CNY: g("CNY") });
+          setCbrDate(j.Date); setStatus("ok");
+        }).catch(() => { if (alive) setStatus("error"); });
+        return () => { alive = false; };
+      }, []);
+      return { rates, cbrDate, status };
+    }
+    const MOEX_MD  = "https://iss.moex.com/iss/engines/currency/markets/selt/boards/CETS/securities/CNYRUB_TOM.json?iss.meta=off&iss.only=marketdata";
+    const MOEX_SEC = "https://iss.moex.com/iss/engines/currency/markets/selt/boards/CETS/securities/CNYRUB_TOM.json?iss.meta=off&iss.only=securities";
+    function pickRow(block, names) {
+      if (!block || !block.data || !block.data[0]) return null;
+      const cols = block.columns, row = block.data[0];
+      for (let i = 0; i < names.length; i++) {
+        const idx = cols.indexOf(names[i]);
+        if (idx >= 0 && row[idx] !== null && row[idx] !== undefined && row[idx] !== 0) return { value: row[idx], name: names[i] };
+      }
+      return null;
+    }
+    function getCol(block, name) {
+      if (!block || !block.data || !block.data[0]) return null;
+      const i = block.columns.indexOf(name);
+      return i >= 0 ? block.data[0][i] : null;
+    }
+    function useMoexCny() {
+      const [state, setState] = useState({ price: null, time: null, kind: null, status: "loading", at: null });
+      const [tick, setTick] = useState(0);
+      /* автообновление раз в минуту, вручную — кнопкой */
+      useEffect(() => {
+        const id = setInterval(() => setTick((t) => t + 1), 60000);
+        return () => clearInterval(id);
+      }, []);
+      useEffect(() => {
+        let alive = true;
+        setState((s) => Object.assign({}, s, { status: "loading" }));
+        const bust = "&_=" + Date.now();
+        const getJson = (u) => fetch(u + bust, { cache: "no-store" }).then((r) => { if (!r.ok) throw new Error("http"); return r.json(); });
+        const run = (attempt) => {
+          Promise.all([getJson(MOEX_MD).catch(() => null), getJson(MOEX_SEC).catch(() => null)])
+            .then(([md, sec]) => {
+              if (!alive) return;
+              const live = md ? pickRow(md.marketdata, ["LAST", "MARKETPRICE", "WAPRICE"]) : null;
+              if (live) {
+                const kinds = { LAST: "последняя сделка", MARKETPRICE: "рыночная цена", WAPRICE: "средневзвешенная" };
+                setState({ price: live.value, time: md ? getCol(md.marketdata, "UPDATETIME") : null, kind: kinds[live.name], status: "ok", at: Date.now() });
+                return;
+              }
+              const prev = sec ? pickRow(sec.securities, ["PREVPRICE", "PREVWAPRICE", "PREVADMITTEDQUOTE"]) : null;
+              if (prev) {
+                const d = sec ? getCol(sec.securities, "PREVDATE") : null;
+                setState({ price: prev.value, time: d ? new Date(d).toLocaleDateString("ru-RU") : null, kind: "закрытие торгов", status: "ok", at: Date.now() });
+                return;
+              }
+              if (attempt < 2) { setTimeout(() => run(attempt + 1), 1200); return; }
+              setState((s) => Object.assign({}, s, { status: "error" }));
+            })
+            .catch(() => { if (!alive) return; if (attempt < 2) setTimeout(() => run(attempt + 1), 1200); else setState((s) => Object.assign({}, s, { status: "error" })); });
+        };
+        run(1);
+        return () => { alive = false; };
+      }, [tick]);
+      return Object.assign({}, state, { refresh: () => setTick((t) => t + 1) });
+    }
+
+    const CURRENCIES = [
+      { code: "USD", name: "Доллар", sym: "$", full: "Доллар США" },
+      { code: "CNY", name: "Юань",   sym: "¥", full: "Китайский юань" },
+      { code: "EUR", name: "Евро",   sym: "€", full: "Евро" },
+    ];
+
+    /* ================= ОБЩИЕ ЭЛЕМЕНТЫ ================= */
+    async function copyText(t) {
+      try { if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(t); return true; } } catch (e) {}
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = t; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.top = "0"; ta.style.left = "0";
+        ta.style.width = "1px"; ta.style.height = "1px"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.focus(); ta.select(); ta.setSelectionRange(0, ta.value.length);
+        const ok = document.execCommand("copy"); document.body.removeChild(ta); return ok;
+      } catch (e) { return false; }
+    }
+    function selectNode(node) {
+      try { const sel = window.getSelection(); const range = document.createRange();
+        range.selectNodeContents(node); sel.removeAllRanges(); sel.addRange(range); return true; } catch (e) { return false; }
+    }
+    function KpBlock({ text, title, note, tall }) {
+      const [copied, setCopied] = useState(false);
+      const [failed, setFailed] = useState(false);
+      const preRef = useRef(null);
+      const onCopy = async () => {
+        const ok = await copyText(text);
+        if (!ok && preRef.current) selectNode(preRef.current);
+        setCopied(ok); setFailed(!ok);
+        setTimeout(() => { setCopied(false); setFailed(false); }, 3000);
+      };
+      return (
+        <div className={"rounded-2xl card pad h-full flex flex-col " + (tall ? "kp-tall" : "")}>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <IcDoc size={18} style={{ color: "var(--red)" }} />
+              <div className="text-[15px] font-semibold ink">{title || "Готовое КП для клиента"}</div>
+            </div>
+            <button onClick={onCopy} className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[13px] font-medium btn-dark transition-all">
+              {copied ? <IcCheck size={16} stroke="#fdf6ec" /> : <IcCopy size={16} stroke="#fdf6ec" />}
+              {copied ? "Скопировано" : (failed ? "Выделено, Ctrl+C" : "Скопировать КП")}
+            </button>
+          </div>
+          <div ref={preRef} className="kp-pre flex-1 rounded-xl sunken px-4 py-3.5">{text}</div>
+          {note && <div className="mt-2.5 text-[12.5px] ink-3 flex items-start gap-1.5"><IcInfo size={13} className="shrink-0 mt-0.5" />{note}</div>}
+        </div>
+      );
+    }
+    function Row({ label, sub, value, alt, big, color, zero, strong }) {
+      return (
+        <div className="row py-2.5" style={{ borderBottom: "1px solid var(--line-2)" }}>
+          <div className="row-l">
+            <div className={(big ? "text-[16px] font-semibold " : "text-[14px] ") + (strong ? "ink font-semibold" : "ink")} style={{ lineHeight: 1.35 }}>{label}</div>
+            {sub && <div className="text-[12.5px] ink-3 mt-0.5" style={{ lineHeight: 1.4 }}>{sub}</div>}
+          </div>
+          <div className="row-r">
+            {zero
+              ? <div className="text-[14px] font-semibold num" style={{ color: GREEN }}>0 ₽</div>
+              : <div className={"num font-semibold " + (big ? "text-[22px] font-bold" : "text-[15px]")} style={{ color: color || "var(--ink)" }}>{value}</div>}
+            {alt && <div className="text-[12.5px] ink-3 num mt-0.5">{alt}</div>}
+          </div>
+        </div>
+      );
+    }
+    function RateRows({ rates }) {
+      return (
+        <div className="space-y-2">
+          {CURRENCIES.map((c) => (
+            <div key={c.code} className="row rounded-xl card-soft px-3.5 py-2.5">
+              <div className="row-l">
+                <div className="text-[14px] ink" style={{ lineHeight: 1.25 }}>{c.full}</div>
+                <div className="text-[12.5px] ink-3 mt-0.5">за 1 {c.sym}</div>
+              </div>
+              <div className="row-r num text-[19px] font-bold ink">{rate(rates[c.code])}</div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    function CurrencyPicker({ currency, setCurrency }) {
+      return (
+        <div className="grid grid-cols-3 gap-2">
+          {CURRENCIES.map((c) => {
+            const on = currency === c.code;
+            return (
+              <button key={c.code} onClick={() => setCurrency(c.code)}
+                className={"rounded-xl py-2.5 border transition-all " + (on ? "btn-dark border-transparent font-semibold" : "btn-ghost")}>
+                <div className="text-lg leading-none">{c.sym}</div><div className="text-[13px] mt-1">{c.name}</div>
+              </button>
+            );
+          })}
+        </div>
+      );
+    }
+    function Badge({ children, tone, icon }) {
+      const Ic = icon;
+      const c = tone === "gold" ? { bg: "rgba(154,106,36,0.10)", bd: "rgba(154,106,36,0.32)", tx: "#7d5518" }
+             : tone === "vtb"  ? { bg: "rgba(10,40,150,0.08)",  bd: "rgba(10,40,150,0.28)",  tx: VTB_BLUE }
+             : tone === "green"? { bg: "rgba(28,122,77,0.10)",  bd: "rgba(28,122,77,0.30)",  tx: "#166341" }
+             :                   { bg: "rgba(194,53,43,0.10)",  bd: "rgba(194,53,43,0.30)",  tx: "#96271f" };
+      return (
+        <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[12px] font-semibold tracking-[0.16em] uppercase border"
+          style={{ background: c.bg, borderColor: c.bd, color: c.tx }}>
+          {Ic && <Ic size={15} />}{children}
+        </span>
+      );
+    }
+    function Head({ badge, icon, tone, title, text, right }) {
+      return (
+        <div className="rise mb-5 md:mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-8">
+            <div className="lg:max-w-[48%]">
+              <div className="mb-3"><Badge tone={tone} icon={icon}>{badge}</Badge></div>
+              <h2 className="text-3xl sm:text-4xl xl:text-5xl font-semibold tracking-tight ink" style={{ letterSpacing: "-0.03em" }}>{title}</h2>
+            </div>
+            <p className="text-[16px] sm:text-lg leading-relaxed ink-2 lg:pb-1 lg:flex-1">{text}</p>
+            {right}
+          </div>
+        </div>
+      );
+    }
+    function PromoTag({ children }) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11.5px] font-bold uppercase tracking-wider"
+          style={{ background: "linear-gradient(180deg,#d33a2f,#bd2f26)", color: "#fff", boxShadow: "0 4px 12px -6px rgba(189,47,38,0.9)" }}>
+          <IcTag size={12} />{children || "Акция"}
+        </span>
+      );
+    }
+    function WasNow({ was, now, jan }) {
+      return (
+        <span className="inline-flex items-baseline gap-2 flex-wrap">
+          {jan && <span className="text-[12.5px] ink-3 line-through">{jan}</span>}
+          <span className="text-[12.5px] ink-3 line-through">{was}</span>
+          <IcRight size={12} className="ink-3" />
+          <span className="text-[15px] font-bold num" style={{ color: "var(--red)" }}>{now}</span>
+        </span>
+      );
+    }
+
+    /* ====== мобильная компактность: тяжёлые блоки сворачиваются ====== */
+    const NARROW_Q = "(max-width: 1023px)";
+    function useIsNarrow() {
+      const [n, setN] = useState(() => { try { return window.matchMedia(NARROW_Q).matches; } catch (e) { return false; } });
+      useEffect(() => {
+        let mq;
+        try { mq = window.matchMedia(NARROW_Q); } catch (e) { return; }
+        const f = () => setN(mq.matches);
+        f();
+        if (mq.addEventListener) mq.addEventListener("change", f);
+        else if (mq.addListener) mq.addListener(f);
+        const onResize = () => setN(window.innerWidth < 1024);
+        window.addEventListener("resize", onResize);
+        return () => {
+          if (mq.removeEventListener) mq.removeEventListener("change", f);
+          else if (mq.removeListener) mq.removeListener(f);
+          window.removeEventListener("resize", onResize);
+        };
+      }, []);
+      return n;
+    }
+    /* На широком экране блок всегда раскрыт, на телефоне свёрнут в одну строку. */
+    function Fold({ title, sub, icon, children, className, tint }) {
+      const narrow = useIsNarrow();
+      const [open, setOpen] = useState(false);
+      const shown = !narrow || open;
+      const Ic = icon;
+      return (
+        <div className={"rounded-2xl card pad " + (className || "")} style={tint || null}>
+          <button
+            onClick={() => { if (narrow) setOpen((o) => !o); }}
+            className="w-full text-left flex items-center gap-2"
+            style={{ cursor: narrow ? "pointer" : "default" }}
+            aria-expanded={shown}>
+            {Ic && <Ic size={17} className="shrink-0" style={{ color: "var(--red)" }} />}
+            <span className="min-w-0">
+              <span className="block text-[15px] font-semibold ink leading-tight">{title}</span>
+              {sub && <span className="block text-[12.5px] ink-3 mt-0.5 leading-snug">{sub}</span>}
+            </span>
+            {narrow && (
+              <span className="ml-auto shrink-0 w-8 h-8 rounded-full flex items-center justify-center btn-ghost"
+                style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .2s ease" }}>
+                <IcDown size={16} />
+              </span>
+            )}
+          </button>
+          {shown && <div className="mt-3">{children}</div>}
+        </div>
+      );
+    }
+
+    /* ====== вход по кодовому слову ====== */
+    const CODE_WORD = "альфавэд";
+    const SESSION_MS = 5 * 60 * 1000;   // доступ сам закрывается каждые 5 минут
+    /* Доступ нигде не сохраняется: любое обновление страницы снова спрашивает слово. */
+    function Gate({ children }) {
+      const [ok, setOk] = useState(false);
+      const [val, setVal] = useState("");
+      const [denied, setDenied] = useState(false);
+      const [expired, setExpired] = useState(false);
+      const inputRef = useRef(null);
+      useEffect(() => { if (!ok && inputRef.current) { try { inputRef.current.focus(); } catch (e) {} } }, [ok]);
+      useEffect(() => {
+        if (!ok) return;
+        const id = setTimeout(() => { setOk(false); setVal(""); setExpired(true); setDenied(false); }, SESSION_MS);
+        return () => clearTimeout(id);
+      }, [ok]);
+      const submit = (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        const norm = String(val).trim().toLowerCase().replace(/\s+/g, "").replace(/ё/g, "е");
+        if (norm === CODE_WORD.replace(/ё/g, "е")) { setDenied(false); setExpired(false); setOk(true); }
+        else { setDenied(true); }
+      };
+      if (ok) return children;
+      return (
+        <div className="min-h-[100svh] flex items-center justify-center px-4 py-10">
+          <div className="w-full" style={{ maxWidth: "440px" }}>
+            <div className="rounded-3xl card emboss pad text-center">
+              <div className="flex items-center justify-center gap-2 mb-5">
+                <IcGlobe size={22} style={{ color: "var(--red)" }} />
+                <span className="text-xl font-bold tracking-tight ink">ДЕМИН</span>
+              </div>
+              <div className="w-14 h-14 mx-auto rounded-2xl sunken flex items-center justify-center mb-4">
+                <IcLock size={24} style={{ color: denied ? "var(--red)" : "var(--ink-3)" }} />
+              </div>
+              {denied ? (
+                <React.Fragment>
+                  <div className="text-2xl sm:text-[28px] font-bold mb-2" style={{ color: "var(--red)", letterSpacing: "-0.02em" }}>ДОСТУП ЗАПРЕЩЕН</div>
+                  <p className="text-[14px] ink-2 leading-relaxed mb-5">Кодовое слово не подошло. Попробуйте ещё раз.</p>
+                </React.Fragment>
+              ) : expired ? (
+                <React.Fragment>
+                  <div className="text-xl sm:text-2xl font-semibold ink mb-2" style={{ letterSpacing: "-0.02em" }}>Сессия закрыта</div>
+                  <p className="text-[14px] ink-2 leading-relaxed mb-5">Прошло пять минут, доступ закрылся автоматически. Введите кодовое слово ещё раз.</p>
+                </React.Fragment>
+              ) : (
+                <React.Fragment>
+                  <div className="text-xl sm:text-2xl font-semibold ink mb-2" style={{ letterSpacing: "-0.02em" }}>Доступ по кодовому слову</div>
+                  <p className="text-[14px] ink-2 leading-relaxed mb-5">Страница с внутренними тарифами и расчётами. Доступ открывается на пять минут и нигде не сохраняется.</p>
+                </React.Fragment>
+              )}
+              <form onSubmit={submit}>
+                <input ref={inputRef} type="text" value={val} autoComplete="off" spellCheck="false"
+                  onChange={(e) => { setVal(e.target.value); if (denied) setDenied(false); }}
+                  placeholder="Кодовое слово"
+                  className="fld text-center"
+                  style={{ fontSize: "18px", letterSpacing: "0.06em", borderColor: denied ? "rgba(194,53,43,0.55)" : null }} />
+                <button type="submit" className="w-full mt-3 rounded-xl btn-red py-3 font-medium text-[15px]">Войти</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ================= ВРЕМЯ: местное и московское ================= */
+    const MSK_TZ = "Europe/Moscow";
+    const WORK_FROM = 9, WORK_TO = 18;   // финагенты работают с 9:00 до 18:00 МСК
+    function mskParts(d) {
+      try {
+        const s = new Intl.DateTimeFormat("ru-RU", { timeZone: MSK_TZ, hour: "2-digit", minute: "2-digit", hour12: false }).format(d);
+        const p = s.split(":");
+        return { text: s, h: parseInt(p[0], 10), m: parseInt(p[1], 10) };
+      } catch (e) {
+        const u = d.getTime() + d.getTimezoneOffset() * 60000 + 3 * 3600000;
+        const x = new Date(u);
+        const hh = String(x.getHours()).padStart(2, "0"), mm = String(x.getMinutes()).padStart(2, "0");
+        return { text: hh + ":" + mm, h: x.getHours(), m: x.getMinutes() };
+      }
+    }
+    function useClock() {
+      const [now, setNow] = useState(() => new Date());
+      useEffect(() => {
+        const id = setInterval(() => setNow(new Date()), 15000);
+        return () => clearInterval(id);
+      }, []);
+      const msk = mskParts(now);
+      let local = "";
+      try { local = new Intl.DateTimeFormat("ru-RU", { hour: "2-digit", minute: "2-digit", hour12: false }).format(now); }
+      catch (e) { local = String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0"); }
+      let tzName = "";
+      try { tzName = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) {}
+      const sameAsMsk = local === msk.text;
+      const open = msk.h >= WORK_FROM && msk.h < WORK_TO;
+      const mins = msk.h * 60 + msk.m;
+      let left = "";
+      if (open) {
+        const d = WORK_TO * 60 - mins;
+        left = d >= 60 ? "ещё " + Math.floor(d / 60) + " ч " + (d % 60) + " мин" : "ещё " + d + " мин";
+      } else {
+        const d = mins < WORK_FROM * 60 ? WORK_FROM * 60 - mins : (24 * 60 - mins) + WORK_FROM * 60;
+        left = d >= 60 ? "через " + Math.floor(d / 60) + " ч " + (d % 60) + " мин" : "через " + d + " мин";
+      }
+      return { local, msk: msk.text, tzName, sameAsMsk, open, left };
+    }
+    /* компактная плашка со временем */
+    function Clock({ compact }) {
+      const c = useClock();
+      return (
+        <div className={"inline-flex items-center gap-2 rounded-full card-soft px-3 py-1.5 " + (compact ? "text-[12px]" : "text-[12.5px]")}>
+          <span className="w-1.5 h-1.5 rounded-full shrink-0 pulse" style={{ background: c.open ? "var(--green)" : "var(--red)" }}></span>
+          <span className="num ink-2">у вас <span className="font-semibold ink">{c.local}</span></span>
+          {!c.sameAsMsk && <span className="num ink-2">· МСК <span className="font-semibold ink">{c.msk}</span></span>}
+          <span className={"hidden sm:inline " + (c.open ? "" : "")} style={{ color: c.open ? "var(--green)" : "var(--red-ink)" }}>
+            {c.open ? "работаем, " + c.left : "нерабочее время, " + c.left}
+          </span>
+        </div>
+      );
+    }
+    /* строка-пояснение про часы работы */
+    function WorkHours() {
+      const c = useClock();
+      return (
+        <div className="rounded-xl card-soft px-3.5 py-2.5 flex items-start gap-2">
+          <IcClock size={15} className="shrink-0 mt-0.5" style={{ color: c.open ? "var(--green)" : "var(--red)" }} />
+          <div className="text-[12.5px] ink-2 leading-snug">
+            Финагенты работают <span className="ink font-semibold">с 9:00 до 18:00 по Москве</span>.
+            Сейчас у вас {c.local}{c.sameAsMsk ? "" : ", в Москве " + c.msk}.{" "}
+            <span style={{ color: c.open ? "var(--green)" : "var(--red-ink)" }} className="font-semibold">{c.open ? "Заявку успеваем поставить сегодня, " + c.left + " до конца дня." : "Сейчас нерабочее время, начнём " + c.left + "."}</span>
+          </div>
+        </div>
+      );
+    }
+
+    /* ================= ВКЛАДКИ КАЛЬКУЛЯТОРА ================= */
+    const TABS = [
+      { id: "import",   Ic: IcSun,    label: "Импорт через финансового агента",  short: "Импорт",   price: "от 0,8%",   note: "платёж поставщику за рубеж" },
+      { id: "export",   Ic: IcInflow, label: "Экспорт через финансового агента", short: "Экспорт",  price: "0,2%",      note: "приём выручки на счёт в РФ" },
+      { id: "clearing", Ic: IcMap,    label: "Клиринговые платежи в Китай",      short: "Клиринг",  price: "0,5%",      note: "рубли от нас, платит банк КНР" },
+      { id: "dandong",  Ic: IcBank,   label: "Bank of Dandong, прямой платёж",            short: "Dandong",  price: "0,8%",      note: "прямой платёж, курс AlfaFX" },
+      { id: "yuan",     Ic: IcScale,  label: "Покупка юаня: у нас или в ВТБ",    short: "Юань",     price: "сравнение", note: "где юань дешевле до Шанхая" },
+    ];
+
+    /* ================= ТИТУЛЬНЫЙ ЛИСТ ================= */
+    const NAV = [
+      { label: "Тарифы",      to: "promo" },
+      { label: "Санкции",     to: "pressure" },
+      { label: "Калькулятор", to: "calc" },
+      { label: "КП",          to: "kp" },
+    ];
+    const CHIPS = [
+      { Ic: IcShield,  text: "Гарантированная проходимость платежа" },
+      { Ic: IcPercent, text: "Клиринг 0,5%, импорт от 0,8%, экспорт 0,2%" },
+      { Ic: IcSwap,    text: "Курс ЦБ без переплат в курсе" },
+      { Ic: IcFile,    text: "Валютный контроль под ключ" },
+    ];
+    const SLIDES = [
+      {
+        title: "Платёж дойдёт. Это моя работа",
+        desc: "Импорт, экспорт, покупка юаня, клиринг и Bank of Dandong. Пять независимых маршрутов: закрылся один — сделка идёт другим, без потери недели."
+      },
+      {
+        title: "Новые тарифы: дешевле почти вдвое",
+        desc: "До конца года клиринг стоит 0,5%, импорт от 0,8%, экспорт 0,2% на любые суммы. Год назад те же операции стоили 1,9–2,2%."
+      },
+      {
+        title: "Считаем открыто, до копейки",
+        desc: "Курс ЦБ и биржи тянутся вживую, каждая комиссия показана отдельной строкой. Рядом — готовое КП, которое можно скопировать и отправить клиенту."
+      },
+    ];
+
+    function Hero({ onPick }) {
+      const [menuOpen, setMenuOpen] = useState(false);
+      const [i, setI] = useState(0);
+      const slide = SLIDES[i];
+      const prev = () => setI((v) => (v - 1 + SLIDES.length) % SLIDES.length);
+      const next = () => setI((v) => (v + 1) % SLIDES.length);
+      return (
+        <section id="top" className="relative">
+          <nav className="relative z-50 wrap flex items-center justify-between gap-3 py-3">
+            <div className="flex items-center gap-2 fu">
+              <IcGlobe size={20} style={{ color: "var(--red)" }} />
+              <span className="text-[17px] font-bold tracking-tight ink">ДЕМИН</span>
+              <span className="hidden md:inline text-[11.5px] font-normal ink-3 pl-2 ml-1 leading-tight" style={{ borderLeft: "1px solid var(--line)" }}>международные<br/>расчёты</span>
+            </div>
+            <div className="hidden lg:flex items-center gap-6">
+              {NAV.map((l, idx) => (
+                <Jump key={l.label} to={l.to} className="text-[14px] ink-2 hover:ink transition-colors fu" style={{ animationDelay: (60 + idx * 40) + "ms" }}>{l.label}</Jump>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="hidden md:inline-flex fu"><Clock /></span>
+              <Ext href={TG} className="hidden sm:flex items-center gap-2 rounded-full btn-dark px-4 py-2 text-[13.5px] font-medium fu">Telegram<IcSend size={16} /></Ext>
+              <Ext href={PHONE} title={PHONE_TITLE} label="Позвонить" className="hidden sm:flex items-center justify-center w-9 h-9 rounded-full btn-ghost fu"><IcPhone size={16} /></Ext>
+              <button onClick={() => setMenuOpen((o) => !o)} className="flex lg:hidden items-center justify-center w-10 h-10 rounded-full btn-ghost fu" aria-label="Меню">
+                {menuOpen ? <IcX size={18} /> : <IcMenu size={18} />}
+              </button>
+            </div>
+          </nav>
+
+          <div className={"lg:hidden absolute top-[58px] left-0 right-0 z-40 mx-3 rounded-2xl card emboss transition-all duration-300 " + (menuOpen ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0 pointer-events-none")}>
+            <div className="flex flex-col p-2.5">
+              {NAV.map((l) => (
+                <Jump key={l.label} to={l.to} onDone={() => setMenuOpen(false)} className="py-2.5 px-3 rounded-lg text-[14px] ink-2 hover:ink">{l.label}</Jump>
+              ))}
+              <div className="mt-2 pt-2.5 flex items-center gap-2" style={{ borderTop: "1px solid var(--line-2)" }}>
+                <Ext href={TG} className="flex-1 flex items-center justify-center gap-2 rounded-full btn-dark px-4 py-2.5 text-[13.5px] font-medium">Telegram<IcSend size={16} /></Ext>
+                <Ext href={PHONE} title={PHONE_TITLE} label="Позвонить" className="flex items-center justify-center w-11 h-11 rounded-full btn-ghost"><IcPhone size={17} /></Ext>
+              </div>
+            </div>
+          </div>
+
+          <main className="wrap pb-8 pt-2 md:pt-4 relative z-10">
+            <div className="md:hidden mb-3 fu"><Clock compact /></div>
+
+            <div className="flex flex-col lg:flex-row lg:items-end gap-4 lg:gap-8">
+              <div className="lg:flex-[7] min-w-0">
+                <div className="mb-3 fu">
+                  <span className="inline-flex items-center gap-2 flex-wrap">
+                    <PromoTag>Акция {PROMO_SHORT}</PromoTag>
+                    <span className="text-[12.5px] ink-2">тарифы действуют до {PROMO_UNTIL}</span>
+                  </span>
+                </div>
+                <h1 key={"t-" + i} className="text-[26px] leading-[1.08] sm:text-[38px] xl:text-[46px] font-semibold mb-2.5 fu ink" style={{ letterSpacing: "-0.035em" }}>{slide.title}</h1>
+                <p key={"d-" + i} className="text-[14.5px] sm:text-[16px] ink-2 max-w-2xl fu leading-relaxed">{slide.desc}</p>
+
+                <div className="flex flex-wrap items-center gap-2.5 mt-4 fu">
+                  <Jump to="calc" className="flex items-center gap-2 rounded-full btn-red px-5 py-2.5 font-medium text-[14px]"><IcCalc size={17} />Калькулятор</Jump>
+                  <Jump to="kp" className="flex items-center gap-2 rounded-full btn-ghost px-5 py-2.5 font-medium text-[14px]"><IcEdit size={16} />Собрать КП</Jump>
+                  <div className="flex items-center gap-1.5 ml-auto lg:ml-0">
+                    <button onClick={prev} className="flex items-center justify-center w-9 h-9 rounded-full btn-ghost" aria-label="Назад"><IcLeft size={16} /></button>
+                    <div className="flex items-center gap-1.5">
+                      {SLIDES.map((s, idx) => (
+                        <button key={idx} onClick={() => setI(idx)} aria-label={"Слайд " + (idx + 1)}
+                          className={"h-1.5 rounded-full transition-all " + (idx === i ? "w-6" : "w-2.5")}
+                          style={{ background: idx === i ? "var(--red)" : "rgba(36,26,20,0.18)" }}></button>
+                      ))}
+                    </div>
+                    <button onClick={next} className="flex items-center justify-center w-9 h-9 rounded-full btn-ghost" aria-label="Далее"><IcRight size={16} /></button>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-4 text-[12.5px] fu">
+                  {CHIPS.map((c, idx) => (
+                    <span key={idx} className={"flex items-center gap-1.5 ink-2 " + (idx > 1 ? "hidden sm:flex" : "")}>
+                      <c.Ic size={15} className="shrink-0" style={{ color: "var(--red)" }} /><span>{c.text}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="hidden lg:block lg:flex-[4] fu">
+                <div className="relative rounded-2xl overflow-hidden emboss" style={{ aspectRatio: "16 / 9", border: "1px solid var(--line)" }}>
+                  <video className="absolute inset-0 w-full h-full object-cover" autoPlay loop muted playsInline preload="auto"
+                    src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_094145_4a271a6c-3869-4f1c-8aa7-aeb0cb227994.mp4"></video>
+                  <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(20,12,8,0.20) 45%, rgba(20,12,8,0.80) 100%)" }}></div>
+                  <div className="absolute left-0 right-0 bottom-0 p-4">
+                    <div className="grid grid-cols-3 gap-2">
+                      {[{ k: "0,5%", v: "клиринг в КНР" }, { k: "0,2%", v: "экспорт" }, { k: "0,8%", v: "импорт от $100 тыс." }].map((x, n) => (
+                        <div key={n}>
+                          <div className="text-[18px] font-bold num" style={{ color: "#fff" }}>{x.k}</div>
+                          <div className="text-[11px]" style={{ color: "rgba(255,255,255,0.78)" }}>{x.v}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mt-4">
+              {TABS.map((t, idx) => (
+                <button key={t.id} onClick={() => onPick(t.id)} className="tab fu group">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <t.Ic size={16} className="shrink-0" style={{ color: "var(--red)" }} />
+                    <span className="text-[13.5px] font-semibold ink leading-tight">{t.short}</span>
+                    <span className="ml-auto text-[12.5px] font-bold num" style={{ color: "var(--red)" }}>{t.price}</span>
+                  </div>
+                  <div className="text-[11.5px] ink-3 leading-snug">{t.note}</div>
+                </button>
+              ))}
+            </div>
+          </main>
+        </section>
+      );
+    }
+    /* ================= ТАРИФЫ ================= */
+    const RATE_ROWS = [
+      { name: "Клиринг в Китай", was: "0,9%", now: "0,5%", note: "мин. 20 000 ₽, курс ЦБ", color: ALFA_RED, Ic: IcMap, to: "clearing" },
+      { name: "Bank of Dandong", was: "1,2%", now: "0,8%", note: "прямой, всё вместе до 1,8%", color: GOLD, Ic: IcBank, to: "dandong" },
+      { name: "Импорт через агента", was: "от 1,2%", now: "от 0,8%", note: "1,4% / 1,0% / 0,8% по сумме", color: GREEN, Ic: IcSun, to: "import" },
+      { name: "Приём выручки", was: "0,5%", now: "0,2%", note: "одна ставка на все суммы", color: VTB_BLUE, Ic: IcInflow, to: "export" },
+    ];
+
+    function Promo({ onPick }) {
+      return (
+        <section id="promo" className="w-full pt-2 pb-8 md:pb-10">
+          <div className="wrap">
+            <div className="rise rounded-2xl card emboss pad">
+              <div className="flex flex-col lg:flex-row lg:items-center gap-2.5 lg:gap-5 mb-3">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <PromoTag>До {PROMO_UNTIL}</PromoTag>
+                  <h2 className="text-[20px] sm:text-[24px] font-semibold tracking-tight ink" style={{ letterSpacing: "-0.03em" }}>Новые тарифы</h2>
+                </div>
+                <p className="text-[13px] ink-2 leading-relaxed lg:flex-1">Для сравнения: у ВТБ платёж стоит 1,99%, плюс наценка в курсе юаня 14–25 копеек, которую в тарифах не показывают, и ещё 1–1,2% они берут с китайской стороны.</p>
+              </div>
+              <div className="grid grid-cols-2 xl:grid-cols-4 gap-2">
+                {RATE_ROWS.map((r, i) => (
+                  <button key={i} onClick={() => onPick(r.to)} className="tab">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <r.Ic size={15} className="shrink-0" style={{ color: r.color }} />
+                      <span className="text-[13px] font-semibold ink leading-tight">{r.name}</span>
+                    </div>
+                    <div className="flex items-baseline gap-1.5 mb-0.5">
+                      <span className="text-[12px] ink-3 line-through num">{r.was}</span>
+                      <span className="text-[19px] font-bold num leading-none" style={{ color: r.color }}>{r.now}</span>
+                    </div>
+                    <div className="text-[11.5px] ink-3 leading-snug">{r.note}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    /* ================= САНКЦИОННОЕ ДАВЛЕНИЕ ================= */
+    const BANKS = "ДОМ.РФ, Ак Барс, Уралсиб, Зенит, Приморье, Металлинвест, МТС, Синара, СДМ, ТКБ, Центр-инвест, Авто Финанс, Абсолют, Точка, Озон, РСХБ, Кубань Кредит, Яндекс, МСП, Росэксим, Почта Банк, Генбанк, Локо, Фора, Экспобанк, Аверс, Примсоцбанк, СНГБ, ББР, ЦентроКредит, Газэнергобанк, РосДорБанк, Траст, НРБ, Челиндбанк, Челябинвестбанк, Инго, Энерготрансбанк, Солидарность, Авангард, Меткомбанк, Экономбанк, Нацстандарт, Держава, Модульбанк, БыстроБанк, Хлынов, Севергазбанк, Ренессанс Кредит, Финсервис, Кузнецкбизнесбанк, БКС, Акцепт, Итуруп, Еврофинанс, Мир Бизнес, Инвестторгбанк, ПСКБ, РостФинанс, Раунд, Трансстройбанк, Москоммерцбанк, Энергобанк, Тольяттихимбанк, Финам, Кошелев, Прио-Внешторг, Цифра, Белгородсоцбанк, Оренбург, Объединённый Капитал, Форштадт, Татсоцбанк, НБД, Кредит Урал, Алмазэргиэнбанк, Сибсоцбанк, Юг-Инвест, НОКССБАНК, Левобережный, Русский Стандарт, УБРиР, Вайлдберриз, Бланк, СПб, Реалист, Агророс, Углеметбанк, Роял Кредит, АКИБАНК.";
+
+    function Pressure({ onPick }) {
+      return (
+        <section id="pressure" className="slide">
+          <div className="wrap w-full">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 sm:gap-5 items-start">
+              <div className="xl:col-span-5">
+                <div className="rise rounded-2xl card pad" style={{ borderLeft: "4px solid var(--red)" }}>
+                  <div className="mb-4"><Badge tone="red" icon={IcAlert}>21-й пакет санкций ЕС</Badge></div>
+                  <h2 className="text-2xl sm:text-4xl xl:text-5xl font-semibold leading-tight tracking-tight ink mb-4" style={{ letterSpacing: "-0.03em" }}>Новые ограничения для финансового сектора РФ</h2>
+                  <p className="text-[15px] sm:text-lg ink-2 leading-relaxed mb-4">Евросоюз существенно расширил ограничения против российской банковской системы. Заморозки активов и транзакционные запреты усложняют трансграничные платежи.</p>
+                  <p className="text-[15px] sm:text-lg ink-2 leading-relaxed mb-5">Для бизнеса это значит одно: маршрут, который работал вчера, завтра может закрыться. Поэтому мы держим четыре независимых канала и переключаем сделку между ними, не теряя недели.</p>
+                  <div className="flex flex-wrap gap-3">
+                    <button onClick={() => onPick("clearing")} className="flex items-center gap-2 rounded-full btn-red px-6 py-3 font-medium text-[15px]"><IcCalc size={18} />Как платить сейчас</button>
+                    <Ext href={TG} className="flex items-center gap-2 rounded-full btn-ghost px-6 py-3 font-medium text-[15px]">Обсудить маршрут<IcArrow size={17} /></Ext>
+                  </div>
+                </div>
+              </div>
+
+              <div className="xl:col-span-7 flex flex-col gap-3.5 sm:gap-5">
+                <div className="rise">
+                  <Fold icon={IcBank} title="Под новые санкции попали 90 банков" sub="полный список, нажмите чтобы раскрыть">
+                    <div className="rounded-xl sunken pad">
+                      <p className="bank-cols text-[13.5px] sm:text-[15px] leading-relaxed ink-2">{BANKS}</p>
+                    </div>
+                  </Fold>
+                </div>
+                <div className="rise grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3" style={{ transitionDelay: "80ms" }}>
+                  {[
+                    { Ic: IcZap,   t: "Платёж вернулся", d: "Переводим сделку на другой маршрут в тот же день." },
+                    { Ic: IcClock, t: "Завис в пути",    d: "Ведём розыск и параллельно готовим запасной канал." },
+                    { Ic: IcLock,  t: "Банк под санкциями", d: "Платим через агента, ваш банк в цепочке не участвует." },
+                  ].map((x, i) => (
+                    <div key={i} className="rounded-2xl card p-3.5 sm:p-4">
+                      <div className="flex items-center gap-2 mb-1"><x.Ic size={16} style={{ color: "var(--red)" }} /><div className="text-[14px] font-semibold ink">{x.t}</div></div>
+                      <div className="text-[12.5px] ink-2 leading-relaxed">{x.d}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    /* ================= ЕДИНЫЙ КАЛЬКУЛЯТОР ================= */
+    function CalcHub({ tab, setTab }) {
+      return (
+        <section id="calc" className="slide">
+          <div className="wrap w-full">
+            <Head badge="Калькулятор" icon={IcCalc} tone="red"
+              title="Один калькулятор на пять маршрутов"
+              text="Выберите направление — нужный расчёт подгрузится сам. Каждая комиссия отдельной строкой, рядом готовое КП."
+              right={<div className="shrink-0"><Clock /></div>} />
+
+            <div className="rise grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-3">
+              {TABS.map((t) => {
+                const on = tab === t.id;
+                return (
+                  <button key={t.id} onClick={() => setTab(t.id)} className={"tab " + (on ? "on" : "")} aria-pressed={on}>
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <t.Ic size={16} className="shrink-0" style={{ color: on ? "var(--red)" : "var(--ink-3)" }} />
+                      <span className="text-[13.5px] font-semibold leading-tight">{t.short}</span>
+                      <span className="ml-auto text-[12.5px] font-bold num" style={{ color: on ? "var(--red)" : "var(--ink-3)" }}>{t.price}</span>
+                    </div>
+                    <div className="text-[11.5px] ink-3 leading-snug">{t.note}</div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div key={tab} className="fu">
+              {tab === "import"   && <ImportPanel />}
+              {tab === "export"   && <ExportPanel />}
+              {tab === "yuan"     && <YuanPanel />}
+              {tab === "clearing" && <ClearingPanel />}
+              {tab === "dandong"  && <DandongPanel />}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    /* ---------- 1. ИМПОРТ ЧЕРЕЗ ФИНАНСОВОГО АГЕНТА ---------- */
+    const IMPORT_WAS_PCT = [0.017, 0.017, 0.015, 0.012];
+
+    function ImportPanel() {
+      const { rates, cbrDate, status } = useCbr();
+      const [customMode, setCustomMode] = useState(false);
+      const [cr, setCr] = useState({ USD: String(FALLBACK.USD), EUR: String(FALLBACK.EUR), CNY: String(FALLBACK.CNY) });
+      const [currency, setCurrency] = useState("USD");
+      const [amount, setAmount] = useState("25000");
+      useEffect(() => { if (status === "ok") setCr({ USD: rates.USD.toFixed(4), EUR: rates.EUR.toFixed(4), CNY: rates.CNY.toFixed(4) }); }, [status]);
+
+      const eff = customMode ? { USD: parseNum(cr.USD, rates.USD), EUR: parseNum(cr.EUR, rates.EUR), CNY: parseNum(cr.CNY, rates.CNY) } : rates;
+      const P = parseNum(amount, 0);
+      const Prub = P * eff[currency];
+      const Pusd = eff.USD > 0 ? Prub / eff.USD : 0;
+      const tier = tierFor(Pusd);
+      const tierIdx = IMPORT_TIERS.indexOf(tier);
+      const mainComm = Prub * tier.pct + tier.fix * eff.USD;
+      const wasComm  = Prub * IMPORT_WAS_PCT[tierIdx] + tier.fix * eff.USD;
+      const valCtl = Math.max(Prub * VC_PCT, VC_MIN);
+      const finAg  = Math.max(Prub * FA_PCT, FA_MIN);
+      const totalComm = mainComm + valCtl + finAg;
+      const total = Prub + totalComm;
+      const totalWas = Prub + wasComm + valCtl + finAg;
+      const saved = totalWas - total;
+      const overall = Prub > 0 ? (totalComm / Prub) * 100 : 0;
+      const dateStr = cbrDate ? new Date(cbrDate).toLocaleDateString("ru-RU") : "";
+      const setCrField = (k, v) => setCr((o) => Object.assign({}, o, { [k]: v }));
+      const symbol = CURRENCIES.find((c) => c.code === currency).sym;
+      const srcName = customMode ? "Investing или свой курс" : "ЦБ" + (dateStr ? " на " + dateStr : "");
+
+      const kp = [
+        "Иван Иванович, добрый день!",
+        "",
+        "Платёж " + cur(P) + " " + currency + " обойдётся в " + rub(total) + ", это " + pctStr(overall, 1) + " сверх суммы.",
+        "",
+        "РАСЧЁТ",
+        "Сумма: " + cur(P) + " " + currency + " по курсу " + srcName + " " + rate(eff[currency]) + " = " + rub(Prub),
+        "Комиссия агента " + tier.now + ": " + rub(mainComm),
+        "Валютный контроль 0,2% (мин. 1 200 ₽): " + rub(valCtl),
+        "Перевод агенту 0,15% (мин. 1 000 ₽): " + rub(finAg),
+        "Комиссии итого: " + rub(totalComm),
+        "К ОПЛАТЕ: " + rub(total) + " ($" + cur(total / eff.USD) + " / ¥" + cur(total / eff.CNY) + " / €" + cur(total / eff.EUR) + ")",
+        "",
+        "ТАРИФ ПО СУММЕ, до " + PROMO_UNTIL,
+      ].concat(IMPORT_TIERS.map((t) => t.range + " — " + t.now + " (было " + t.was + ")"))
+       .concat([
+        "По прежней ставке " + tier.was + " платёж стоил бы " + rub(totalWas) + ", разница " + rub(saved) + ".",
+        "",
+        "Платёж идёт через финансового агента-нерезидента, ваш банк в цепочке не участвует. Конвертация по ЦБ или по Investing, на ваш выбор. Валютный контроль и проверка контракта включены.",
+        "Расчёт ориентировочный, финальные цифры фиксируем перед сделкой.",
+        "",
+      ]).concat(SIGN).join("\n");
+
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+
+          <Fold icon={IcRefresh} title="Курс конвертации" sub={status === "ok" ? "курс ЦБ на " + dateStr : (status === "loading" ? "загружаем курс ЦБ…" : "курс ЦБ не загрузился")}>
+            <RateRows rates={rates} />
+            <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--line-2)" }}>
+              <label className="flex items-center gap-2.5 select-none">
+                <input type="checkbox" checked={customMode} onChange={(e) => setCustomMode(e.target.checked)} className="w-4 h-4" style={{ accentColor: "var(--red)" }} />
+                <span className="text-[14px] ink">Курс Investing или свой <span className="ink-3">(если рынок штормит)</span></span>
+              </label>
+              {customMode && (
+                <div className="space-y-2 mt-3">
+                  {CURRENCIES.map((c) => (
+                    <div key={c.code} className="flex items-center gap-2">
+                      <div className="text-[13px] ink-3 w-[112px] shrink-0">{c.full}, ₽</div>
+                      <input type="number" inputMode="decimal" step="0.0001" value={cr[c.code]} onChange={(e) => setCrField(c.code, e.target.value)} className="fld num flex-1 min-w-0" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="mt-3">
+              <Ext href={INVESTING} className="inline-flex items-center gap-1.5 text-[13px] underline underline-offset-4" style={{ color: "var(--red)" }}>курс на investing.com<IcExt size={14} /></Ext>
+            </div>
+          </Fold>
+
+          <div className="rounded-2xl card pad h-full flex flex-col">
+            <div className="text-[14px] font-semibold ink mb-2">Валюта платежа</div>
+            <div className="mb-4"><CurrencyPicker currency={currency} setCurrency={setCurrency} /></div>
+            <div className="text-[14px] font-semibold ink mb-2">Сумма платежа</div>
+            <div className="relative">
+              <input type="number" inputMode="decimal" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} className="fld fld-big num" />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl ink-3">{symbol}</span>
+            </div>
+            <div className="text-[13px] ink-3 mt-2 num">≈ {rub(Prub)} · ${cur(Pusd)}</div>
+            <div className="mt-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="text-[13px] font-semibold ink-3 uppercase tracking-wider">Комиссия агента</div>
+                <PromoTag>{PROMO_SHORT}</PromoTag>
+              </div>
+              <div className="space-y-1.5">
+                {IMPORT_TIERS.map((t, idx) => { const on = idx === tierIdx; return (
+                  <div key={idx} className={"rounded-xl px-3 py-2 border " + (on ? "" : "card-soft")}
+                    style={on ? { background: "rgba(194,53,43,0.08)", borderColor: "rgba(194,53,43,0.38)" } : null}>
+                    <div className="row">
+                      <span className={"row-l text-[14px] " + (on ? "ink font-semibold" : "ink-2")}>{t.range}</span>
+                      <span className="row-r"><WasNow was={t.was} now={t.now} /></span>
+                    </div>
+                  </div>); })}
+              </div>
+              <div className="text-[13px] ink-3 mt-2 flex items-start gap-1.5"><IcInfo size={14} className="shrink-0 mt-0.5" />В начале года эти же ставки были 2,2%, 1,9% и 1,5%.</div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl card pad h-full flex flex-col" style={{ borderColor: "rgba(194,53,43,0.30)" }}>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+              <div className="text-[15px] font-semibold ink">Расчёт платежа</div>
+              <div className="text-[13px] px-2.5 py-1 rounded-full font-semibold" style={{ background: "rgba(194,53,43,0.10)", color: "var(--red-ink)", border: "1px solid rgba(194,53,43,0.28)" }}>Тариф {tier.now}</div>
+            </div>
+            <Row label="Сумма платежа" sub="тело перевода поставщику" value={rub(Prub)} />
+            <Row label="Комиссия агента" sub={tier.fix ? tier.now + ", включая фикс. $100" : tier.now + " от суммы"} value={rub(mainComm)} color="var(--red)" />
+            <Row label="Валютный контроль" sub="0,2%, мин. 1 200 ₽" value={rub(valCtl)} />
+            <Row label="Перевод финансовому агенту" sub="0,15%, мин. 1 000 ₽" value={rub(finAg)} />
+            <Row label="Комиссии, итого" sub={pctStr(overall, 1) + " сверх суммы"} value={rub(totalComm)} strong />
+            <div className="mt-3 rounded-xl px-4 py-3.5" style={{ background: "rgba(194,53,43,0.07)", border: "1px solid rgba(194,53,43,0.26)" }}>
+              <div className="row">
+                <div className="row-l text-[16px] font-semibold ink">ИТОГО к оплате</div>
+                <div className="row-r">
+                  <div className="num text-2xl font-bold" style={{ color: "var(--red)" }}>{rub(total)}</div>
+                  <div className="text-[12.5px] ink-3 mt-0.5 num">${cur(total / eff.USD)} · ¥{cur(total / eff.CNY)} · €{cur(total / eff.EUR)}</div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 rounded-xl card-soft px-4 py-3">
+              <div className="row">
+                <div className="row-l">
+                  <div className="text-[13.5px] font-semibold ink">Экономия по акции</div>
+                  <div className="text-[12.5px] ink-3 mt-0.5">по прежней ставке {tier.was} было бы {rub(totalWas)}</div>
+                </div>
+                <div className="row-r num text-[19px] font-bold" style={{ color: GREEN }}>−{rub(saved)}</div>
+              </div>
+            </div>
+            <div className="mt-auto pt-3 text-[13px] ink-3 leading-relaxed flex gap-2">
+              <IcInfo size={14} className="shrink-0 mt-0.5" />
+              <span>Цифры ориентировочные. <Ext href={TG} className="underline underline-offset-2" style={{ color: "var(--red)" }}>Напишите, посчитаю точно под вашу сделку</Ext>.</span>
+            </div>
+          </div>
+
+          <KpBlock text={kp} note={"Ставки зафиксированы до " + PROMO_UNTIL + "."} />
+        </div>
+      );
+    }
+
+    /* ---------- 2. ЭКСПОРТ ЧЕРЕЗ ФИНАНСОВОГО АГЕНТА ---------- */
+    const ACCEPT = ["USD", "EUR", "CNY", "AED", "TRY", "KZT", "HKD", "INR", "GBP", "JPY"];
+    const EXPORT_ADV = [
+      { Ic: IcSwap,  t: "Платит удобной валютой", d: "Покупатель платит тем, что ликвидно у него: юанем, долларом, дирхамом. Искать редкую валюту не нужно." },
+      { Ic: IcBank,  t: "Курс ЦБ, без спреда",    d: "Агент конвертирует по курсу ЦБ на момент перевода и зачисляет рубли на ваш расчётный счёт в РФ." },
+      { Ic: IcTrend, t: "Одна ставка на все суммы", d: "0,2% и на разовую отгрузку, и на годовой контракт. Комиссия не растёт вместе с оборотом." },
+    ];
+
+    function ExportPanel() {
+      const { rates, cbrDate, status } = useCbr();
+      const [currency, setCurrency] = useState("CNY");
+      const [amount, setAmount] = useState("50000");
+      const eff = rates;
+      const P = parseNum(amount, 0);
+      const gross = P * eff[currency];
+      const Pusd = eff.USD > 0 ? gross / eff.USD : 0;
+      const comm = gross * EXPORT_PCT;
+      const commWas = gross * 0.005;
+      const net = gross - comm;
+      const netWas = gross - commWas;
+      const saved = net - netWas;
+      const dateStr = cbrDate ? new Date(cbrDate).toLocaleDateString("ru-RU") : "";
+      const symbol = CURRENCIES.find((c) => c.code === currency).sym;
+
+      const kp = [
+        "Иван Иванович, добрый день!",
+        "",
+        "С платежа " + cur(P) + " " + currency + " вы получите " + rub(net) + " на расчётный счёт. Удержим 0,2%, конвертация по курсу ЦБ без спреда.",
+        "",
+        "РАСЧЁТ",
+        "Платёж от покупателя: " + cur(P) + " " + currency + " по курсу ЦБ" + (dateStr ? " на " + dateStr : "") + " " + rate(eff[currency]) + " = " + rub(gross),
+        "Комиссия агента 0,2% (было 0,5%): " + rub(comm),
+        "К ЗАЧИСЛЕНИЮ: " + rub(net) + " ($" + cur(net / eff.USD) + " / ¥" + cur(net / eff.CNY) + " / €" + cur(net / eff.EUR) + ")",
+        "По прежней ставке пришло бы " + rub(netWas) + ", разница " + rub(saved) + ". Ставка 0,2% действует до " + PROMO_UNTIL + " на любые суммы.",
+        "",
+        "Покупатель платит удобной ему валютой: USD, EUR, CNY, AED, TRY, KZT, HKD, INR, GBP, JPY и другие. Агент принимает платёж, конвертирует по курсу ЦБ и зачисляет рубли на ваш счёт в РФ. Валютный контроль на нас.",
+        "Так снимается двойная конвертация, на которой теряется до 17% контракта.",
+        "Расчёт ориентировочный, финальные цифры фиксируем перед сделкой.",
+        "",
+      ].concat(SIGN).join("\n");
+
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+
+          <Fold icon={IcInflow} title="Что это даёт" sub="и в каких валютах принимаем">
+            <div className="space-y-2.5">
+              {EXPORT_ADV.map((a, i) => (
+                <div key={i} className="rounded-xl card-soft p-3.5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <a.Ic size={17} className="shrink-0" style={{ color: GREEN }} />
+                    <div className="text-[15px] font-semibold ink leading-tight">{a.t}</div>
+                  </div>
+                  <div className="text-[13px] ink-2 leading-relaxed">{a.d}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 rounded-xl px-4 py-3" style={{ background: "rgba(28,122,77,0.08)", border: "1px solid rgba(28,122,77,0.26)" }}>
+              <div className="flex items-center gap-2 mb-1"><IcTrend size={18} style={{ color: GREEN }} /><span className="text-2xl font-bold num" style={{ color: GREEN }}>до 17%</span></div>
+              <div className="text-[13px] ink-2 leading-relaxed">теряется на неликвидной валюте и двойной конвертации. У нас потери падают <span className="ink font-semibold">до долей процента</span>.</div>
+            </div>
+            <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--line-2)" }}>
+              <div className="text-[13px] ink-3 mb-2">Принимаем валюты</div>
+              <div className="flex flex-wrap gap-1.5">
+                {ACCEPT.map((c) => (<span key={c} className="px-2.5 py-1 rounded-full text-[13px] font-medium num card-soft ink-2">{c}</span>))}
+                <span className="px-2.5 py-1 rounded-full text-[13px] card-soft ink-3">и другие</span>
+              </div>
+            </div>
+          </Fold>
+
+          <div className="rounded-2xl card pad h-full flex flex-col">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2 text-[15px] ink">
+                <IcRefresh size={16} className={status === "loading" ? "animate-spin" : ""} style={{ color: "var(--red)" }} />
+                <span className="font-semibold">Курс ЦБ РФ</span>
+              </div>
+              <span className="text-[13px] ink-3">{status === "ok" ? "на " + dateStr : (status === "loading" ? "загружаем…" : "нет связи")}</span>
+            </div>
+            <RateRows rates={rates} />
+            <div className="text-[14px] font-semibold ink mt-4 mb-2">Валюта покупателя</div>
+            <CurrencyPicker currency={currency} setCurrency={setCurrency} />
+            <div className="text-[14px] font-semibold ink mt-4 mb-2">Сумма от покупателя</div>
+            <div className="relative">
+              <input type="number" inputMode="decimal" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} className="fld fld-big num" />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl ink-3">{symbol}</span>
+            </div>
+            <div className="text-[13px] ink-3 mt-2 num">≈ {rub(gross)} · ${cur(Pusd)}</div>
+          </div>
+
+          <div className="rounded-2xl card pad h-full flex flex-col" style={{ borderColor: "rgba(28,122,77,0.30)" }}>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+              <div className="text-[15px] font-semibold ink">Расчёт зачисления</div>
+              <div className="text-[13px] px-2.5 py-1 rounded-full font-semibold" style={{ background: "rgba(28,122,77,0.10)", color: "#166341", border: "1px solid rgba(28,122,77,0.28)" }}>Комиссия 0,2%</div>
+            </div>
+            <Row label="Платёж от покупателя" sub="конвертация по курсу ЦБ" value={rub(gross)} />
+            <Row label="Комиссия агента" sub="0,2% от суммы, было 0,5%" value={rub(comm)} color={GREEN} />
+            <div className="mt-3 rounded-xl px-4 py-3.5" style={{ background: "rgba(28,122,77,0.08)", border: "1px solid rgba(28,122,77,0.26)" }}>
+              <div className="row">
+                <div className="row-l">
+                  <div className="text-[16px] font-semibold ink">К зачислению на счёт</div>
+                  <div className="text-[12.5px] ink-3 mt-0.5">рублями, по курсу ЦБ</div>
+                </div>
+                <div className="row-r">
+                  <div className="num text-2xl font-bold" style={{ color: GREEN }}>{rub(net)}</div>
+                  <div className="text-[12.5px] ink-3 mt-0.5 num">${cur(net / eff.USD)} · ¥{cur(net / eff.CNY)} · €{cur(net / eff.EUR)}</div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 rounded-xl card-soft px-4 py-3">
+              <div className="row">
+                <div className="row-l">
+                  <div className="text-[13.5px] font-semibold ink">Больше, чем по старой ставке</div>
+                  <div className="text-[12.5px] ink-3 mt-0.5">при 0,5% на счёт пришло бы {rub(netWas)}</div>
+                </div>
+                <div className="row-r num text-[19px] font-bold" style={{ color: GREEN }}>+{rub(saved)}</div>
+              </div>
+            </div>
+            <div className="mt-3 rounded-xl px-4 py-3" style={{ background: "rgba(194,53,43,0.06)", border: "1px solid rgba(194,53,43,0.22)" }}>
+              <div className="flex items-center gap-2 mb-1"><PromoTag>Акция</PromoTag><span className="text-[13px] font-semibold ink">0,2% вместо 0,5%</span></div>
+              <div className="text-[12.5px] ink-2 leading-relaxed">Ставка зафиксирована до {PROMO_UNTIL} и не зависит от суммы контракта.</div>
+            </div>
+            <div className="mt-auto pt-3 text-[13px] ink-3 leading-relaxed flex gap-2">
+              <IcInfo size={14} className="shrink-0 mt-0.5" />
+              <span>Цифры ориентировочные. <Ext href={TG} className="underline underline-offset-2" style={{ color: "var(--red)" }}>Напишите, посчитаю под ваш контракт</Ext>.</span>
+            </div>
+          </div>
+
+          <KpBlock text={kp} note={"Ставка 0,2% зафиксирована до " + PROMO_UNTIL + "."} />
+        </div>
+      );
+    }
+
+    /* ---------- ОБЩЕЕ ДЛЯ СРАВНЕНИЙ ---------- */
+    function Col({ children }) { return (<div className="flex flex-col gap-3">{children}</div>); }
+    const GRID4 = "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 items-start";
+    function ModeSwitch({ byCny, setMode }) {
+      return (
+        <div className="grid grid-cols-2 gap-2">
+          <button onClick={() => setMode("cny")} className={"rounded-xl py-2 text-[13.5px] font-medium transition-all " + (byCny ? "btn-dark" : "btn-ghost")}>Сумму в ¥</button>
+          <button onClick={() => setMode("rub")} className={"rounded-xl py-2 text-[13.5px] font-medium transition-all " + (!byCny ? "btn-dark" : "btn-ghost")}>Бюджет в ₽</button>
+        </div>
+      );
+    }
+    /* курс биржи + ползунок наценки ВТБ — один блок на все сравнения */
+    function MoexBox({ moex, cbr, cbrStatus, vtbMarkup, setVtbMarkup, label }) {
+      return (
+        <React.Fragment>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-1.5 text-[13.5px] ink"><IcChart size={15} style={{ color: "var(--red)" }} /><span className="font-semibold">Курсы</span></div>
+            <div className="flex items-center gap-2.5">
+              <span className="text-[11.5px] ink-3">обновление раз в минуту</span>
+              <button onClick={moex.refresh} className="inline-flex items-center gap-1 text-[12.5px] ink-2 hover:ink"><IcRefresh size={13} className={moex.status === "loading" ? "animate-spin" : ""} />сейчас</button>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <div className="row rounded-lg px-3 py-2" style={{ background: "rgba(194,53,43,0.07)", border: "1px solid rgba(194,53,43,0.22)" }}>
+              <div className="row-l">
+                <div className="text-[12.5px] font-semibold" style={{ color: "var(--red-ink)" }}>Мосбиржа · CNYRUB_TOM</div>
+                <div className="text-[11.5px] ink-3 leading-snug">{moex.status === "ok" ? (moex.kind + (moex.time ? ", " + moex.time : "")) : "тянем данные"}</div>
+              </div>
+              <div className="row-r num text-[17px] font-bold ink">{moex.status === "ok" ? rate4(moex.price) : (moex.status === "loading" ? "…" : "н/д")}</div>
+            </div>
+            <div className="row rounded-lg card-soft px-3 py-2">
+              <div className="row-l"><div className="text-[12.5px] font-medium ink-2">Курс ЦБ РФ</div></div>
+              <div className="row-r num text-[17px] font-bold ink">{cbrStatus === "loading" ? "…" : rate4(cbr.CNY)}</div>
+            </div>
+          </div>
+          <div className="mt-2.5 pt-2.5" style={{ borderTop: "1px solid var(--line-2)" }}>
+            <div className="flex items-baseline justify-between mb-1">
+              <div className="text-[13px] font-semibold ink">{label || "Наценка ВТБ к бирже"}</div>
+              <div className="text-[15px] font-bold num" style={{ color: VTB_BLUE }}>{Math.round(vtbMarkup * 100)} коп.</div>
+            </div>
+            <input type="range" min="14" max="25" step="1" value={Math.round(vtbMarkup * 100)} onChange={(e) => setVtbMarkup(parseInt(e.target.value, 10) / 100)} className="w-full" />
+            <div className="flex justify-between text-[11.5px] ink-3"><span>14 коп.</span><span>25 коп.</span></div>
+          </div>
+        </React.Fragment>
+      );
+    }
+    /* карточка маршрута: шапка, строки, итог */
+    function RouteCard({ name, sub, cls, win, color, per, rows, foot, cnFee, best, byCny, total, n, budget }) {
+      return (
+        <div className={"rounded-2xl emboss flex flex-col pad " + cls + " " + (best ? win : "")}>
+          <div className="flex items-start justify-between gap-2 mb-0.5">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }}></span>
+              <div className="text-[15px] font-semibold ink leading-tight">{name}</div>
+            </div>
+            {best && (<span className="shrink-0 inline-flex items-center gap-1 text-[11.5px] font-semibold px-2 py-0.5 rounded-full text-white" style={{ background: color }}><IcTrophy size={12} />Выгоднее</span>)}
+          </div>
+          <div className="text-[11.5px] ink-3 mb-2">{sub}</div>
+          <div className="mb-2 inline-flex flex-wrap items-center gap-x-1.5 text-[12.5px] px-2 py-1 rounded-lg self-start" style={{ background: "rgba(0,0,0,0.03)", border: "1px solid " + color + "44", color: color }}>Юань обходится в <span className="font-bold num">{rate4(per)}</span></div>
+          {rows.map((x, i) => (<Row key={i} label={x.l} sub={x.s} value={x.v} alt={x.a} color={x.c} zero={x.zero} />))}
+          <div className="mt-2.5 rounded-xl px-3 py-2.5" style={{ background: color + "12", border: "1px solid " + color + "33" }}>
+            <div className="row">
+              <div className="row-l text-[13px] font-medium ink-2">{byCny ? "Итого к оплате" : "Дойдёт до поставщика"}</div>
+              <div className="row-r">
+                <div className="text-[21px] font-bold num" style={{ color: color }}>{byCny ? rub(total) : cny(n)}</div>
+                <div className="text-[11.5px] ink-3 num">{byCny ? "за " + cny(n) : "из " + rub(budget)}</div>
+              </div>
+            </div>
+            <div className="mt-1.5 pt-1.5 row text-[11.5px] ink-3" style={{ borderTop: "1px solid " + color + "26" }}>
+              <span className="row-l">Получатель в КНР платит</span><span className="row-r font-semibold" style={{ color: color }}>{cnFee}</span>
+            </div>
+          </div>
+          {foot && <div className="mt-1.5 text-[11.5px] ink-3 leading-snug">{foot}</div>}
+        </div>
+      );
+    }
+    /* карточка вывода */
+    function Verdict({ color, title, stats, lines }) {
+      return (
+        <div className="rounded-2xl card pad" style={{ border: "2px solid " + color }}>
+          <div className="flex items-center gap-2.5 mb-2.5">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: color }}><IcTrophy size={18} stroke="#fff" /></div>
+            <div className="min-w-0">
+              <div className="text-[11.5px] uppercase tracking-wider ink-3">Вывод</div>
+              <div className="text-[15px] font-bold leading-tight" style={{ color: color }}>{title}</div>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-1.5">
+            {stats.map((s, i) => (
+              <div key={i} className="rounded-lg sunken px-2 py-1.5">
+                <div className="text-[11.5px] ink-3 mb-0.5 leading-tight">{s.k}</div>
+                <div className="text-[15px] font-bold num leading-tight" style={{ color: color }}>{s.v}</div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-2.5 pt-2.5 text-[12.5px] ink-2 leading-relaxed space-y-1.5" style={{ borderTop: "1px solid var(--line-2)" }}>
+            {lines.filter(Boolean).map((l, i) => <p key={i}>{l}</p>)}
+          </div>
+        </div>
+      );
+    }
+
+    /* ---------- ПОКУПКА ЮАНЯ: У НАС ИЛИ В ВТБ ---------- */
+    function routes(R, mV, byCny, nWanted, budget) {
+      const rateA = R + mV;
+      const rateB = (R + ALFA_MARKUP) * (1 + ALFA_CONV) / (1 - ALFA_TRANSFER);
+      let nA, nB, rubA, rubB;
+      if (byCny) { nA = nB = nWanted; rubA = nA * rateA; rubB = nB * rateB; }
+      else { rubA = rubB = budget; nA = rateA > 0 ? budget / rateA : 0; nB = rateB > 0 ? budget / rateB : 0; }
+      const aWins = rateA < rateB;
+      const diffRub = Math.abs(rubA - rubB), diffCny = Math.abs(nA - nB);
+      const saveRub = byCny ? diffRub : diffCny * R;
+      const saveCny = byCny ? (R > 0 ? diffRub / R : 0) : diffCny;
+      const savePct = byCny ? (Math.max(rubA, rubB) > 0 ? (diffRub / Math.max(rubA, rubB)) * 100 : 0)
+                            : (Math.max(nA, nB) > 0 ? (diffCny / Math.max(nA, nB)) * 100 : 0);
+      return { rateA, rateB, nA, nB, rubA, rubB, aWins, saveRub, saveCny, savePct };
+    }
+
+    function YuanPanel() {
+      const moex = useMoexCny();
+      const { rates: cbr, status: cbrStatus } = useCbr();
+      const [mode, setMode] = useState("cny");
+      const [amtCny, setAmtCny] = useState("100000");
+      const [amtRub, setAmtRub] = useState("1000000");
+      const [vtbMarkup, setVtbMarkup] = useState(0.20);
+      const byCny = mode === "cny";
+
+      const R = moex.status === "ok" && moex.price ? moex.price : cbr.CNY;
+      const nWanted = parseNum(amtCny, 0), budget = parseNum(amtRub, 0);
+      const r = routes(R, vtbMarkup, byCny, nWanted, budget);
+      const scenarios = MARKUPS.map((m) => Object.assign({ markup: m }, routes(R, m, byCny, nWanted, budget)));
+
+      const A_base = r.nA * R, A_markup = r.nA * vtbMarkup;
+      const B_bought = r.nB / (1 - ALFA_TRANSFER);
+      const B_base = B_bought * R, B_markup = B_bought * ALFA_MARKUP;
+      const B_conv = B_bought * (R + ALFA_MARKUP) * ALFA_CONV;
+      const B_transferCny = B_bought * ALFA_TRANSFER, B_transferRub = B_transferCny * (R + ALFA_MARKUP);
+      const commA = r.rubA - r.nA * R, commB = r.rubB - r.nB * R;
+      const pctA = r.nA * R > 0 ? (commA / (r.nA * R)) * 100 : 0;
+      const pctB = r.nB * R > 0 ? (commB / (r.nB * R)) * 100 : 0;
+      const breakEven = r.rateB - R;
+      const shPayA = r.nA * SH_PAY, shVcA = r.nA * SH_VC;
+      const shTotalRub = (shPayA + shVcA) * R;
+      const winColor = r.aWins ? VTB_BLUE : ALFA_RED;
+
+      const kp = [
+        "Иван Иванович, добрый день!",
+        "",
+        (r.aWins ? "Юань выгоднее покупать в ВТБ: разница " : "Юань выгоднее покупать у нас: разница ") + rub(r.saveRub) + " (" + cny(r.saveCny) + "), это " + pctStr(r.savePct) + ".",
+        "База: биржевой курс " + rate4(R) + " за юань, " + (byCny ? "объём " + cny(nWanted) : "бюджет " + rub(budget)) + ".",
+        "",
+        "В ВТБ: наценка в курсе " + Math.round(vtbMarkup * 100) + " коп. = " + rub(A_markup) + ", конвертация 0%, перевод в Шанхай 0%.",
+        "Эффективный курс " + rate4(r.rateA) + ", " + (byCny ? "итого " + rub(r.rubA) : "получите " + cny(r.nA)) + ".",
+        "",
+        "У нас: наценка 1 коп. = " + rub(B_markup) + ", конвертация 0,6% = " + rub(B_conv) + ", перевод в ВТБ 0,3% = " + rub(B_transferRub) + ".",
+        "Эффективный курс " + rate4(r.rateB) + ", " + (byCny ? "итого " + rub(r.rubB) : "получите " + cny(r.nB)) + ".",
+        "",
+        "ПРИ РАЗНЫХ НАЦЕНКАХ ВТБ",
+      ].concat(scenarios.map((s) => Math.round(s.markup * 100) + " коп.: " + (byCny
+          ? "ВТБ " + rub(s.rubA) + ", у нас " + rub(s.rubB) + ", разница " + rub(s.saveRub)
+          : "ВТБ " + cny(s.nA) + ", у нас " + cny(s.nB) + ", разница " + cny(s.saveCny))))
+       .concat([
+        "ВТБ сравнялся бы при наценке " + (breakEven * 100).toFixed(1).replace(".", ",") + " коп., а берёт от 14 до 25.",
+        "",
+        "ПРИ ОТПРАВКЕ ИЗ ВТБ ШАНХАЙ",
+        "Платёж 1,99% = " + rub(shPayA * R) + ", валютный контроль 0,2% = " + rub(shVcA * R) + ". Вместе 2,19% = " + rub(shTotalRub) + ". Одинаково для обоих вариантов.",
+        "Плюс ВТБ Шанхай берёт " + CN_VTB + " с вашего поставщика в Китае.",
+        "",
+        "Дешевле обоих вариантов — клиринг: 0,5% по курсу ЦБ, без наценки в курсе и без 2,19% ВТБ Шанхай.",
+        "Тарифы зависят от дня и объёма, финальные цифры фиксируем перед сделкой.",
+        "",
+      ]).concat(SIGN).join("\n");
+
+      return (
+        <div className={GRID4}>
+          <Col>
+            <div className="rounded-2xl card pad">
+              <MoexBox moex={moex} cbr={cbr} cbrStatus={cbrStatus} vtbMarkup={vtbMarkup} setVtbMarkup={setVtbMarkup} />
+              <div className="mt-2.5 pt-2.5" style={{ borderTop: "1px solid var(--line-2)" }}>
+                <ModeSwitch byCny={byCny} setMode={setMode} />
+                <div className="text-[13px] font-medium ink mt-2 mb-1.5">{byCny ? "Сколько юаней нужно в Шанхае" : "Сколько рублей готовы потратить"}</div>
+                <div className="relative">
+                  <input type="number" inputMode="decimal" min="0" value={byCny ? amtCny : amtRub} onChange={(e) => byCny ? setAmtCny(e.target.value) : setAmtRub(e.target.value)} className="fld fld-big num" />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[17px] ink-3">{byCny ? "¥" : "₽"}</span>
+                </div>
+                <div className="text-[12px] ink-3 mt-1.5 num">{byCny ? "≈ " + rub(nWanted * R) : "≈ " + cny(budget / (R || 1))} по бирже</div>
+              </div>
+            </div>
+            <Fold icon={IcScale} title="Разница при 14, 20 и 25 копейках" sub="три самых частых наценки ВТБ">
+              <div className="space-y-1.5">
+                {scenarios.map((s, i) => {
+                  const on = Math.round(s.markup * 100) === Math.round(vtbMarkup * 100);
+                  return (
+                    <div key={i} className={"rounded-lg px-3 py-2 " + (on ? "" : "card-soft")} style={on ? { background: "rgba(194,53,43,0.07)", border: "1px solid rgba(194,53,43,0.26)" } : null}>
+                      <div className="row">
+                        <span className="row-l ink font-semibold text-[13px]">{Math.round(s.markup * 100)} коп.{on && <span className="ml-1.5 text-[10.5px] px-1.5 py-0.5 rounded-full font-medium" style={{ background: "rgba(194,53,43,0.14)", color: "var(--red-ink)" }}>сейчас</span>}</span>
+                        <span className="row-r num text-[13px] font-bold" style={{ color: s.aWins ? VTB_BLUE : ALFA_RED }}>{byCny ? rub(s.saveRub) : cny(s.saveCny)}</span>
+                      </div>
+                      <div className="text-[11.5px] ink-2 num mt-0.5">ВТБ {byCny ? rub(s.rubA) : cny(s.nA)} · у нас {byCny ? rub(s.rubB) : cny(s.nB)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Fold>
+          </Col>
+
+          <Col>
+            <div className={"rounded-2xl c-vtb emboss flex flex-col pad " + (r.aWins ? "win-vtb" : "")}>
+              <div className="flex items-start justify-between gap-2 mb-0.5">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: VTB_BLUE }}></span>
+                  <div className="text-[15px] font-semibold ink leading-tight">Покупаем юань в ВТБ</div>
+                </div>
+                {r.aWins && (<span className="shrink-0 inline-flex items-center gap-1 text-[11.5px] font-semibold px-2 py-0.5 rounded-full text-white" style={{ background: VTB_BLUE }}><IcTrophy size={12} />Выгоднее</span>)}
+              </div>
+              <div className="text-[11.5px] ink-3 mb-2">и сразу отправляем в ВТБ Шанхай</div>
+              <div className="mb-2 inline-flex items-center gap-1.5 text-[12.5px] px-2 py-1 rounded-lg self-start" style={{ background: "rgba(10,40,150,0.08)", border: "1px solid rgba(10,40,150,0.24)", color: VTB_BLUE }}>Эффективный курс <span className="font-bold num">{rate4(r.rateA)}</span></div>
+              <Row label="Юань по курсу биржи" sub={cny(r.nA) + " по " + rate4(R)} value={rub(A_base)} />
+              <Row label="Наценка ВТБ в курсе" sub={Math.round(vtbMarkup * 100) + " коп. за юань"} value={rub(A_markup)} color={VTB_BLUE} />
+              <Row label="Конвертация" sub="в ВТБ нет" zero />
+              <Row label="Перевод в ВТБ Шанхай" sub="внутри банка" zero />
+              <div className="mt-2.5 rounded-xl px-3 py-2.5" style={{ background: "rgba(10,40,150,0.06)", border: "1px solid rgba(10,40,150,0.20)" }}>
+                <div className="row">
+                  <div className="row-l text-[13px] font-medium ink-2">{byCny ? "Стоимость юаня" : "Получите юаней"}</div>
+                  <div className="row-r">
+                    <div className="text-[21px] font-bold num" style={{ color: VTB_BLUE }}>{byCny ? rub(r.rubA) : cny(r.nA)}</div>
+                    <div className="text-[11.5px] ink-3 num">{byCny ? "за " + cny(r.nA) : "за " + rub(r.rubA)}</div>
+                  </div>
+                </div>
+                <div className="mt-1.5 pt-1.5 row text-[11.5px] ink-3" style={{ borderTop: "1px solid rgba(10,40,150,0.15)" }}>
+                  <span className="row-l">Издержки сверх биржи</span><span className="row-r num ink-2">{rub(commA)} · {pctStr(pctA)}</span>
+                </div>
+              </div>
+            </div>
+            <Fold icon={IcAlert} title="Плюс комиссии ВТБ Шанхай" sub="одинаково для обоих вариантов" tint={{ borderLeft: "4px solid var(--red)" }}>
+              <Row label="Платёж, 1,99%" value={rub(shPayA * R)} alt={"≈ " + cny(shPayA)} />
+              <Row label="Валютный контроль, 0,2%" value={rub(shVcA * R)} alt={"≈ " + cny(shVcA)} />
+              <div className="row rounded-lg px-3 py-2 mt-1.5" style={{ background: "rgba(194,53,43,0.08)", border: "1px solid rgba(194,53,43,0.24)" }}>
+                <div className="row-l text-[13px] font-semibold" style={{ color: "var(--red-ink)" }}>Вместе 2,19%</div>
+                <div className="row-r text-[14px] font-bold num" style={{ color: "var(--red)" }}>{rub(shTotalRub)}</div>
+              </div>
+              <div className="text-[11.5px] ink-3 mt-1.5 leading-snug">Отдельно ВТБ Шанхай берёт {CN_VTB} с получателя в Китае.</div>
+            </Fold>
+          </Col>
+
+          <Col>
+            <div className={"rounded-2xl c-alfa emboss flex flex-col pad " + (!r.aWins ? "win-red" : "")}>
+              <div className="flex items-start justify-between gap-2 mb-0.5">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: ALFA_RED }}></span>
+                  <div className="text-[15px] font-semibold ink leading-tight">Покупаем юань у нас</div>
+                </div>
+                {!r.aWins && (<span className="shrink-0 inline-flex items-center gap-1 text-[11.5px] font-semibold px-2 py-0.5 rounded-full text-white" style={{ background: ALFA_RED }}><IcTrophy size={12} />Выгоднее</span>)}
+              </div>
+              <div className="text-[11.5px] ink-3 mb-2">переводим в ВТБ, оттуда в ВТБ Шанхай</div>
+              <div className="mb-2 inline-flex items-center gap-1.5 text-[12.5px] px-2 py-1 rounded-lg self-start" style={{ background: "rgba(214,40,31,0.08)", border: "1px solid rgba(214,40,31,0.24)", color: ALFA_RED }}>Эффективный курс <span className="font-bold num">{rate4(r.rateB)}</span></div>
+              <Row label="Юань по курсу биржи" sub={"берём " + cny(B_bought) + " по " + rate4(R)} value={rub(B_base)} />
+              <Row label="Наша наценка в курсе" sub="1 коп. за юань" value={rub(B_markup)} color={ALFA_RED} />
+              <Row label="Конвертация" sub="0,6% от суммы" value={rub(B_conv)} color={ALFA_RED} />
+              <Row label="Перевод в ВТБ" sub="0,3%, держат в юанях" value={rub(B_transferRub)} color={ALFA_RED} />
+              <Row label="Перевод в ВТБ Шанхай" sub="внутри банка" zero />
+              <div className="mt-2.5 rounded-xl px-3 py-2.5" style={{ background: "rgba(214,40,31,0.06)", border: "1px solid rgba(214,40,31,0.20)" }}>
+                <div className="row">
+                  <div className="row-l text-[13px] font-medium ink-2">{byCny ? "Стоимость юаня" : "Получите юаней"}</div>
+                  <div className="row-r">
+                    <div className="text-[21px] font-bold num" style={{ color: ALFA_RED }}>{byCny ? rub(r.rubB) : cny(r.nB)}</div>
+                    <div className="text-[11.5px] ink-3 num">{byCny ? "за " + cny(r.nB) : "за " + rub(r.rubB)}</div>
+                  </div>
+                </div>
+                <div className="mt-1.5 pt-1.5 row text-[11.5px] ink-3" style={{ borderTop: "1px solid rgba(214,40,31,0.15)" }}>
+                  <span className="row-l">Издержки сверх биржи</span><span className="row-r num ink-2">{rub(commB)} · {pctStr(pctB)}</span>
+                </div>
+              </div>
+            </div>
+            <Fold icon={IcInfo} title="Как считаем" sub="методика сравнения">
+              <div className="text-[12.5px] ink-2 leading-relaxed space-y-1.5">
+                <p>Банк покупает валюту на бирже и добавляет наценку, поэтому считаем от биржевого курса, а не от ЦБ.</p>
+                <p><span className="font-semibold" style={{ color: VTB_BLUE }}>ВТБ:</span> 14–25 копеек в курсе, конвертация 0%, перевод в Шанхай 0%.</p>
+                <p><span className="font-semibold" style={{ color: ALFA_RED }}>Мы:</span> 1 копейка в курсе, конвертация 0,6%, перевод в ВТБ 0,3%. Последнюю держат в юанях, поэтому покупаем чуть больше нужного.</p>
+              </div>
+            </Fold>
+          </Col>
+
+          <Col>
+            <Verdict color={winColor} title={r.aWins ? "Выгоднее в ВТБ" : "Выгоднее у нас"}
+              stats={[{ k: "Разница, ₽", v: rub(r.saveRub) }, { k: "Разница, ¥", v: cny(r.saveCny) }, { k: "В процентах", v: pctStr(r.savePct) }]}
+              lines={[
+                "ВТБ сравнялся бы при наценке " + (breakEven * 100).toFixed(1).replace(".", ",") + " коп. Берёт от 14 до 25.",
+                "Ещё дешевле — клиринг: 0,5% по курсу ЦБ, без наценки и без 2,19% ВТБ Шанхай.",
+              ]} />
+            <KpBlock text={kp} />
+          </Col>
+        </div>
+      );
+    }
+
+    /* ---------- КЛИРИНГОВЫЕ ПЛАТЕЖИ ---------- */
+    const CLEARING_STEPS = [
+      { n: "1", t: "Рубли от вас", d: "Платите рублями со своего счёта, валюту покупать не нужно." },
+      { n: "2", t: "Конвертация по ЦБ", d: "Курс строго по ЦБ на момент перевода, наценки в курсе нет." },
+      { n: "3", t: "Платит банк КНР", d: "Поставщик получает деньги от банка материкового Китая, внутренним платежом." },
+    ];
+
+    function ClearingPanel() {
+      const { rates: cbr, cbrDate, status: cbrStatus } = useCbr();
+      const moex = useMoexCny();
+      const [mode, setMode] = useState("cny");
+      const [amtCny, setAmtCny] = useState("100000");
+      const [amtRub, setAmtRub] = useState("1000000");
+      const [vtbMarkup, setVtbMarkup] = useState(0.20);
+      const byCny = mode === "cny";
+
+      const Rcb = cbr.CNY;
+      const Rmoex = moex.status === "ok" && moex.price ? moex.price : cbr.CNY;
+      const dateStr = cbrDate ? new Date(cbrDate).toLocaleDateString("ru-RU") : "";
+      const perVtb = (1 + SH_PAY + SH_VC) * (Rmoex + vtbMarkup);
+      const budget = parseNum(amtRub, 0);
+
+      let nClear, nVtb;
+      if (byCny) { nClear = nVtb = parseNum(amtCny, 0); }
+      else {
+        const cPct = budget / (Rcb * (1 + CLEARING_PCT));
+        nClear = (cPct * Rcb * CLEARING_PCT >= CLEARING_MIN) ? cPct : Math.max((budget - CLEARING_MIN) / Rcb, 0);
+        nVtb = perVtb > 0 ? budget / perVtb : 0;
+      }
+      const clearBody = nClear * Rcb;
+      const clearComm = Math.max(clearBody * CLEARING_PCT, CLEARING_MIN);
+      const clearTotal = byCny ? clearBody + clearComm : budget;
+      const vtbTotal = byCny ? nVtb * perVtb : budget;
+      const perClear = nClear > 0 ? clearTotal / nClear : Rcb * (1 + CLEARING_PCT);
+      const minApplied = clearBody * CLEARING_PCT < CLEARING_MIN;
+      const commPct = clearBody > 0 ? (clearComm / clearBody) * 100 : 0;
+
+      const clearWins = byCny ? clearTotal < vtbTotal : nClear > nVtb;
+      const diffRub = byCny ? Math.abs(vtbTotal - clearTotal) : Math.abs(nClear - nVtb) * Rcb;
+      const diffCny = byCny ? (Rcb > 0 ? Math.abs(vtbTotal - clearTotal) / Rcb : 0) : Math.abs(nClear - nVtb);
+      const savePct = byCny ? (Math.max(vtbTotal, clearTotal) > 0 ? Math.abs(vtbTotal - clearTotal) / Math.max(vtbTotal, clearTotal) * 100 : 0)
+                            : (Math.max(nClear, nVtb) > 0 ? Math.abs(nClear - nVtb) / Math.max(nClear, nVtb) * 100 : 0);
+      const thresholdCny = (perVtb - Rcb) > 0 ? CLEARING_MIN / (perVtb - Rcb) : 0;
+      const winColor = clearWins ? ALFA_RED : VTB_BLUE;
+
+      const kp = [
+        "Иван Иванович, добрый день!",
+        "",
+        (byCny
+          ? "Клиринг дешевле платежа через ВТБ Шанхай на " + rub(diffRub) + ", это " + pctStr(savePct) + "."
+          : "На бюджет " + rub(budget) + " клиринг доводит до поставщика на " + cny(diffCny) + " больше, чем ВТБ Шанхай, это " + pctStr(savePct) + "."),
+        "",
+        "КЛИРИНГ",
+        "Клиринг — совместный проект Центробанков России и Китая, мы аккредитованы по нему работать. Отсюда и цена: платёж идёт межбанковским каналом, без цепочки посредников.",
+        "Тело " + cny(nClear) + " по курсу ЦБ" + (dateStr ? " на " + dateStr : "") + " " + rate4(Rcb) + " = " + rub(clearBody),
+        "Комиссия 0,5%" + (minApplied ? ", сработал минимум 20 000 ₽" : "") + ": " + rub(clearComm) + " (" + pctStr(commPct) + " от суммы, и это за всё)",
+        "Итого " + rub(clearTotal) + ", юань обходится в " + rate4(perClear),
+        "Наценки в курсе нет, валютный контроль отдельно не берётся.",
+        "Получатель в Китае платит финагенту " + CN_CLEARING + ", тогда как в ВТБ Шанхай с него удержали бы " + CN_VTB + ". Ему тоже выгоднее.",
+        "",
+        "ЧЕРЕЗ ВТБ ШАНХАЙ",
+        "Юань по бирже " + rate4(Rmoex) + " плюс наценка " + Math.round(vtbMarkup * 100) + " коп., платёж 1,99%, валютный контроль 0,2%.",
+        "Итого " + rub(vtbTotal) + ", юань обходится в " + rate4(perVtb),
+        "Плюс ВТБ Шанхай удерживает " + CN_VTB + " с получателя в Китае.",
+        (byCny ? "" : "На тот же бюджет дойдёт: клиринг " + cny(nClear) + ", ВТБ " + cny(nVtb) + "."),
+        "",
+        "УСЛОВИЯ",
+        "Получатель — китайская компания без иностранного участия: ни среди учредителей и юрлиц-участников, ни в лице генерального директора. Банк получателя — материковый Китай, кроме банков с американским участием.",
+        "География: " + PROVINCES.join(", ") + ", а также " + CITIES.join(" и ") + ".",
+        "Ставка 0,5% и минимум 20 000 ₽ действуют до " + PROMO_UNTIL + ".",
+        "Расчёт ориентировочный, финальные цифры фиксируем перед сделкой.",
+        "",
+      ].concat(SIGN).join("\n");
+
+      return (
+        <div className={GRID4}>
+          <Col>
+            <div className="rounded-2xl card pad">
+              <MoexBox moex={moex} cbr={cbr} cbrStatus={cbrStatus} vtbMarkup={vtbMarkup} setVtbMarkup={setVtbMarkup} label="Наценка ВТБ для сравнения" />
+              <div className="mt-2.5 pt-2.5" style={{ borderTop: "1px solid var(--line-2)" }}>
+                <ModeSwitch byCny={byCny} setMode={setMode} />
+                <div className="text-[13px] font-medium ink mt-2 mb-1.5">{byCny ? "Сумма платежа поставщику" : "Бюджет на платёж"}</div>
+                <div className="relative">
+                  <input type="number" inputMode="decimal" min="0" value={byCny ? amtCny : amtRub} onChange={(e) => byCny ? setAmtCny(e.target.value) : setAmtRub(e.target.value)} className="fld fld-big num" />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[17px] ink-3">{byCny ? "¥" : "₽"}</span>
+                </div>
+                <div className="text-[12px] ink-3 mt-1.5 num">Курс ЦБ {cbrStatus === "loading" ? "…" : rate4(Rcb)}{dateStr ? ", на " + dateStr : ""}</div>
+                {!byCny && <div className="mt-1.5 text-[12px] rounded-lg px-2.5 py-1.5" style={{ background: "rgba(194,53,43,0.07)", border: "1px solid rgba(194,53,43,0.22)", color: "var(--red-ink)" }}>Бюджет одинаковый — сравниваем, сколько юаней дойдёт.</div>}
+              </div>
+            </div>
+            <WorkHours />
+          </Col>
+
+          <Col>
+            <RouteCard name="Клиринг через финагента" sub="рубли от нас, платит банк КНР" cls="c-alfa" win="win-red" color={ALFA_RED}
+              per={perClear} best={clearWins} byCny={byCny} total={clearTotal} n={nClear} budget={budget} cnFee={CN_CLEARING}
+              rows={[
+                { l: "Сумма по курсу ЦБ", s: cny(nClear) + " по " + rate4(Rcb), v: rub(clearBody) },
+                { l: "Комиссия клиринга", s: minApplied ? "0,5%, сработал минимум 20 000 ₽" : "0,5% от суммы, было 0,9%", v: rub(clearComm), c: ALFA_RED },
+                { l: "Наценка к курсу", s: "её нет, идём по ЦБ", zero: true },
+                { l: "Валютный контроль", s: "отдельно не берётся", zero: true },
+              ]}
+              foot={"Получателю тоже дешевле: в ВТБ Шанхай с него удержали бы " + CN_VTB + "."} />
+            <Fold icon={IcMap} title="Как идут деньги" sub="совместный проект ЦБ России и ЦБ Китая">
+              <div className="rounded-lg px-3 py-2 mb-2 text-[12.5px] ink-2 leading-relaxed" style={{ background: "rgba(194,53,43,0.07)", border: "1px solid rgba(194,53,43,0.22)" }}>
+                Клиринг — совместный проект Центробанков России и Китая. Мы аккредитованы работать по нему, отсюда и цена: расчёт идёт по межбанковскому каналу, а не через цепочку посредников.
+              </div>
+              <div className="space-y-1.5">
+                {CLEARING_STEPS.map((s, i) => (
+                  <div key={i} className="rounded-lg card-soft p-2.5">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <div className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{ background: ALFA_RED }}>{s.n}</div>
+                      <div className="text-[13px] font-semibold ink leading-tight">{s.t}</div>
+                    </div>
+                    <div className="text-[11.5px] ink-2 leading-relaxed">{s.d}</div>
+                  </div>
+                ))}
+              </div>
+            </Fold>
+          </Col>
+
+          <Col>
+            <RouteCard name="Через ВТБ Шанхай" sub="покупка юаня в ВТБ, платёж из Шанхая" cls="c-vtb" win="win-vtb" color={VTB_BLUE}
+              per={perVtb} best={!clearWins} byCny={byCny} total={vtbTotal} n={nVtb} budget={budget} cnFee={CN_VTB}
+              rows={[
+                { l: "Юань по курсу биржи", s: cny(nVtb) + " по " + rate4(Rmoex), v: rub(nVtb * Rmoex) },
+                { l: "Наценка ВТБ в курсе", s: Math.round(vtbMarkup * 100) + " коп. за юань", v: rub(nVtb * vtbMarkup), c: VTB_BLUE },
+                { l: "Платёж из ВТБ Шанхай", s: "1,99% от суммы", v: rub(nVtb * SH_PAY * (Rmoex + vtbMarkup)), c: VTB_BLUE },
+                { l: "Валютный контроль", s: "0,2% от суммы", v: rub(nVtb * SH_VC * (Rmoex + vtbMarkup)), c: VTB_BLUE },
+              ]}
+              foot={"Эти " + CN_VTB + " теряет поставщик и закладывает их в цену."} />
+            <Fold icon={IcAlert} title="Кому можно платить" sub="требования к получателю и география">
+              <div className="text-[12.5px] ink-2 leading-relaxed space-y-1.5 mb-2.5">
+                <div><span className="ink font-semibold">Банк получателя китайский, материковый.</span> Подходит почти любой, кроме банков с американским участием.</div>
+                <div><span className="ink font-semibold">Поставщик полностью китайский.</span> Без иностранного участия ни среди учредителей и юрлиц-участников, ни в лице генерального директора.</div>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {PROVINCES.map((p) => (<span key={p} className="px-2 py-0.5 rounded-full text-[11.5px] font-medium card-soft ink-2">{p}</span>))}
+                {CITIES.map((p) => (<span key={p} className="px-2 py-0.5 rounded-full text-[11.5px] font-semibold" style={{ background: "rgba(194,53,43,0.09)", border: "1px solid rgba(194,53,43,0.24)", color: "var(--red-ink)" }}>{p}</span>))}
+              </div>
+            </Fold>
+          </Col>
+
+          <Col>
+            <Verdict color={winColor} title={clearWins ? (byCny ? "Клиринг дешевле" : "Клиринг доводит больше") : "На этой сумме дешевле ВТБ"}
+              stats={[
+                { k: byCny ? "Разница, ₽" : "Юаней больше", v: byCny ? rub(diffRub) : cny(diffCny) },
+                { k: byCny ? "Это, ¥" : "В деньгах", v: byCny ? cny(diffCny) : rub(diffRub) },
+                { k: "В процентах", v: pctStr(savePct) },
+              ]}
+              lines={[
+                "Юань обходится: клиринг " + rate4(perClear) + ", ВТБ " + rate4(perVtb) + ".",
+                minApplied ? "Здесь у клиринга сработал минимум 20 000 ₽. Он перестаёт мешать примерно от " + cny(thresholdCny) + "." : null,
+                "У ВТБ к 1,99% добавляется наценка в курсе 14–25 копеек и ещё " + CN_VTB + " с китайской стороны. На клиринге получатель платит финагенту " + CN_CLEARING + " — ему тоже дешевле.",
+                "Клиринг — совместный проект ЦБ России и ЦБ Китая, мы по нему аккредитованы. Поэтому платёж идёт межбанковским каналом и стоит так мало.",
+              ]} />
+            <KpBlock text={kp} />
+          </Col>
+        </div>
+      );
+    }
+
+    /* ---------- BANK OF DANDONG: ПРЯМОЙ ПЛАТЁЖ ---------- */
+    function DandongPanel() {
+      const { rates: cbr, status: cbrStatus } = useCbr();
+      const moex = useMoexCny();
+      const [mode, setMode] = useState("cny");
+      const [amtCny, setAmtCny] = useState("100000");
+      const [amtRub, setAmtRub] = useState("1000000");
+      const [vtbMarkup, setVtbMarkup] = useState(0.20);
+      const byCny = mode === "cny";
+
+      const Rmoex = moex.status === "ok" && moex.price ? moex.price : cbr.CNY;
+      const Rfx = Rmoex + FX_MARKUP;                 // наш курс AlfaFX
+      const perVtb = (1 + SH_PAY + SH_VC) * (Rmoex + vtbMarkup);
+      const budget = parseNum(amtRub, 0);
+
+      let nDand, nVtb;
+      if (byCny) { nDand = nVtb = parseNum(amtCny, 0); }
+      else {
+        nDand = solveByBudget(budget, (n) => dandongCalc(n, Rmoex).total, budget / (Rmoex * 0.5) + 1);
+        nVtb = perVtb > 0 ? budget / perVtb : 0;
+      }
+      const D = dandongCalc(nDand, Rmoex);
+      const dandTotal = byCny ? D.total : budget;
+      const vtbTotal = byCny ? nVtb * perVtb : budget;
+      const perDand = nDand > 0 ? dandTotal / nDand : Rfx;
+      const dMinApplied = D.base * DANDONG_PCT < DANDONG_MIN;
+
+      const dWins = byCny ? dandTotal < vtbTotal : nDand > nVtb;
+      const diffRub = byCny ? Math.abs(vtbTotal - dandTotal) : Math.abs(nDand - nVtb) * Rmoex;
+      const diffCny = byCny ? (Rmoex > 0 ? Math.abs(vtbTotal - dandTotal) / Rmoex : 0) : Math.abs(nDand - nVtb);
+      const savePct = byCny ? (Math.max(vtbTotal, dandTotal) > 0 ? Math.abs(vtbTotal - dandTotal) / Math.max(vtbTotal, dandTotal) * 100 : 0)
+                            : (Math.max(nDand, nVtb) > 0 ? Math.abs(nDand - nVtb) / Math.max(nDand, nVtb) * 100 : 0);
+      const winColor = dWins ? GOLD : VTB_BLUE;
+
+      const kp = [
+        "Иван Иванович, добрый день!",
+        "",
+        (byCny
+          ? "Прямой платёж в Bank of Dandong дешевле ВТБ Шанхай на " + rub(diffRub) + ", это " + pctStr(savePct) + "."
+          : "На бюджет " + rub(budget) + " прямым платежом до поставщика доходит на " + cny(diffCny) + " больше, чем через ВТБ Шанхай, это " + pctStr(savePct) + "."),
+        "",
+        "BANK OF DANDONG, ПРЯМОЙ ПЛАТЁЖ",
+        "Это прямой платёж: юань уходит в банк получателя без цепочки посредников. В этом его смысл.",
+        "Юань берём по нашему курсу AlfaFX — биржа плюс одна копейка. Сейчас " + rate4(Rfx) + " при бирже " + rate4(Rmoex) + ".",
+        "Тело " + cny(nDand) + " по бирже = " + rub(D.base) + ", наценка курса = " + rub(D.mk),
+        "Перевод 0,8%" + (dMinApplied ? ", сработал минимум 3 000 ₽" : "") + " (было 1,2%): " + rub(D.tr),
+        "Валютный контроль и оформление: " + rub(D.rest),
+        "Всё вместе " + rub(D.comm) + " — это " + pctStr(D.pct) + " и не больше 1,8% ни при каком раскладе.",
+        "Итого " + rub(dandTotal) + ", юань обходится в " + rate4(perDand),
+        "С получателя в Китае комиссия 0%, по редким санкционным позициям 0,2%.",
+        "",
+        "ЧЕРЕЗ ВТБ ШАНХАЙ",
+        "Юань по бирже " + rate4(Rmoex) + " плюс наценка " + Math.round(vtbMarkup * 100) + " коп., платёж 1,99%, валютный контроль 0,2%.",
+        "Итого " + rub(vtbTotal) + ", юань обходится в " + rate4(perVtb),
+        "Плюс ВТБ Шанхай удерживает " + CN_VTB + " с получателя в Китае — у нас в этом месте ноль.",
+        (byCny ? "" : "На тот же бюджет дойдёт: Dandong " + cny(nDand) + ", ВТБ " + cny(nVtb) + "."),
+        "",
+        "Расчёт ориентировочный, финальные цифры фиксируем перед сделкой.",
+        "",
+      ].concat(SIGN).join("\n");
+
+      return (
+        <div className={GRID4}>
+          <Col>
+            <div className="rounded-2xl card pad">
+              <MoexBox moex={moex} cbr={cbr} cbrStatus={cbrStatus} vtbMarkup={vtbMarkup} setVtbMarkup={setVtbMarkup} label="Наценка ВТБ для сравнения" />
+              <div className="row rounded-lg px-3 py-2 mt-1.5" style={{ background: "rgba(154,106,36,0.09)", border: "1px solid rgba(154,106,36,0.28)" }}>
+                <div className="row-l">
+                  <div className="text-[12.5px] font-semibold" style={{ color: "#7d5518" }}>Наш курс AlfaFX</div>
+                  <div className="text-[11.5px] ink-3 leading-snug">биржа плюс 1 копейка</div>
+                </div>
+                <div className="row-r num text-[17px] font-bold" style={{ color: GOLD }}>{rate4(Rfx)}</div>
+              </div>
+              <div className="mt-2.5 pt-2.5" style={{ borderTop: "1px solid var(--line-2)" }}>
+                <ModeSwitch byCny={byCny} setMode={setMode} />
+                <div className="text-[13px] font-medium ink mt-2 mb-1.5">{byCny ? "Сумма платежа поставщику" : "Бюджет на платёж"}</div>
+                <div className="relative">
+                  <input type="number" inputMode="decimal" min="0" value={byCny ? amtCny : amtRub} onChange={(e) => byCny ? setAmtCny(e.target.value) : setAmtRub(e.target.value)} className="fld fld-big num" />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[17px] ink-3">{byCny ? "¥" : "₽"}</span>
+                </div>
+                <div className="text-[12px] ink-3 mt-1.5 num">{byCny ? "≈ " + rub(nDand * Rfx) + " по нашему курсу" : "≈ " + cny(budget / (Rfx || 1)) + " по нашему курсу"}</div>
+              </div>
+            </div>
+            <WorkHours />
+          </Col>
+
+          <Col>
+            <RouteCard name="Bank of Dandong" sub="прямой платёж в юанях, курс AlfaFX" cls="c-gold" win="win-gold" color={GOLD}
+              per={perDand} best={dWins} byCny={byCny} total={dandTotal} n={nDand} budget={budget} cnFee={CN_DANDONG}
+              rows={[
+                { l: "Юань по курсу биржи", s: cny(nDand) + " по " + rate4(Rmoex), v: rub(D.base) },
+                { l: "Наценка AlfaFX", s: "1 копейка на юань", v: rub(D.mk), c: GOLD },
+                { l: "Перевод", s: dMinApplied ? "0,8%, сработал минимум 3 000 ₽" : "0,8% от суммы, было 1,2%", v: rub(D.tr), c: GOLD },
+                { l: "Контроль и оформление", s: "добор до совокупных 1,8%", v: rub(D.rest), c: GOLD },
+              ]}
+              foot={"Всё вместе " + rub(D.comm) + " — " + pctStr(D.pct) + ", выше 1,8% не поднимется."} />
+            <Fold icon={IcBank} title="Почему прямой платёж" sub="чем Dandong отличается от клиринга">
+              <div className="text-[12.5px] ink-2 leading-relaxed space-y-1.5">
+                <p><span className="ink font-semibold">Платёж идёт напрямую</span> в банк получателя, без цепочки посредников. Меньше звеньев — меньше поводов для задержки и вопросов.</p>
+                <p>Юань покупаем по нашему курсу AlfaFX: биржевой плюс одна копейка. Не по ЦБ и не по банковскому курсу с наценкой в четверть рубля.</p>
+                <p><span className="ink font-semibold">С получателя в Китае не берут ничего.</span> На клиринге он платит финагенту {CN_CLEARING}, в ВТБ Шанхай — {CN_VTB}.</p>
+                <p>Берём этот маршрут, когда клиринг не подходит: получатель с иностранным участием, регион вне нашей географии или банк, который клиринг не принимает.</p>
+              </div>
+            </Fold>
+          </Col>
+
+          <Col>
+            <RouteCard name="Через ВТБ Шанхай" sub="покупка юаня в ВТБ, платёж из Шанхая" cls="c-vtb" win="win-vtb" color={VTB_BLUE}
+              per={perVtb} best={!dWins} byCny={byCny} total={vtbTotal} n={nVtb} budget={budget} cnFee={CN_VTB}
+              rows={[
+                { l: "Юань по курсу биржи", s: cny(nVtb) + " по " + rate4(Rmoex), v: rub(nVtb * Rmoex) },
+                { l: "Наценка ВТБ в курсе", s: Math.round(vtbMarkup * 100) + " коп. за юань", v: rub(nVtb * vtbMarkup), c: VTB_BLUE },
+                { l: "Платёж из ВТБ Шанхай", s: "1,99% от суммы", v: rub(nVtb * SH_PAY * (Rmoex + vtbMarkup)), c: VTB_BLUE },
+                { l: "Валютный контроль", s: "0,2% от суммы", v: rub(nVtb * SH_VC * (Rmoex + vtbMarkup)), c: VTB_BLUE },
+              ]}
+              foot={"Эти " + CN_VTB + " теряет поставщик и закладывает их в цену."} />
+          </Col>
+
+          <Col>
+            <Verdict color={winColor} title={dWins ? (byCny ? "Прямой платёж дешевле" : "Прямым доходит больше") : "На этой сумме дешевле ВТБ"}
+              stats={[
+                { k: byCny ? "Разница, ₽" : "Юаней больше", v: byCny ? rub(diffRub) : cny(diffCny) },
+                { k: byCny ? "Это, ¥" : "В деньгах", v: byCny ? cny(diffCny) : rub(diffRub) },
+                { k: "В процентах", v: pctStr(savePct) },
+              ]}
+              lines={[
+                "Юань обходится: Dandong " + rate4(perDand) + ", ВТБ " + rate4(perVtb) + ". Разница почти вся сидит в курсе: у нас копейка к бирже, у ВТБ " + Math.round(vtbMarkup * 100) + ".",
+                "Всё вместе у нас " + pctStr(D.pct) + " и не больше 1,8%. И это без " + CN_VTB + ", которые ВТБ Шанхай снимает с китайской стороны — у нас там ноль.",
+              ]} />
+            <KpBlock text={kp} />
+          </Col>
+        </div>
+      );
+    }
+
+    /* ================= КОНСТРУКТОР КП ================= */
+    const NA = "— не указано —";
+    const O_TASK = [NA, "Импорт из Китая", "Экспорт в Китай", "Импорт из другой страны", "Экспорт в другую страну", "Импорт и экспорт", "Покупка юаня"];
+
+    function Field({ label, children }) {
+      return (<label className="block"><div className="text-[12.5px] font-semibold ink mb-1">{label}</div>{children}</label>);
+    }
+    function Sel({ value, onChange, options }) {
+      return (<select className="fld" value={value} onChange={(e) => onChange(e.target.value)}>{options.map((o) => <option key={o} value={o}>{o}</option>)}</select>);
+    }
+    const isSet = (v) => v && v !== NA;
+
+    /* ---- сборка текста ---- */
+    function buildKp(f, c) {
+      const S = parseNum(f.amount, 1000000);
+      const has = S > 0;
+      const L = [];
+      const add = (s) => L.push(s);
+      const gap = () => { if (L.length && L[L.length - 1] !== "") L.push(""); };
+      /* строка «а на вашей сумме это столько» */
+      const ex = (comm, pct) => { if (has) add("Например, на " + rub(S) + " это " + rub(comm) + " — " + pctStr(pct, 2) + " за всё."); };
+
+      const who = (f.client || "").trim();
+      const co = (f.company || "").trim();
+      const on = f.blocks;
+
+      add(who ? who + ", добрый день!" : "Добрый день!");
+      gap();
+      add(co ? "Подготовил предложение по международным расчётам для " + co + "." : "Подготовил предложение по международным расчётам.");
+      if (isSet(f.task)) add("Задача: " + f.task.toLowerCase() + ".");
+
+      if (on.china) {
+        gap();
+        add("ПЛАТЕЖИ В КИТАЙ");
+        gap();
+        add("Клиринг через финансового агента");
+        add("Клиринг — совместный проект Центробанков России и Китая, мы аккредитованы по нему работать. Платёж идёт межбанковским каналом, без цепочки посредников, отсюда и цена.");
+        add("Рубли уходят от нас, поставщику платит банк материкового Китая — для него это внутренний платёж, а не перевод из России.");
+        add("Курс — ЦБ на день перевода, наценки в курсе нет.");
+        add("Комиссия 0,5%, минимум 20 000 ₽. Это и есть вся стоимость: ни за платёж, ни за валютный контроль отдельно не берём.");
+        if (has && c.clearMin) add("Например, на " + rub(S) + " это " + rub(c.clearComm) + ": здесь ещё работает минимум. Сама ставка 0,5% включается от " + rub(CLEARING_MIN / CLEARING_PCT) + ", и дальше комиссия почти не растёт вместе с суммой.");
+        else ex(c.clearComm, c.clearPct);
+        add("Получатель в Китае платит финагенту " + CN_CLEARING + ", тогда как в ВТБ Шанхай с него удержали бы " + CN_VTB + ". Ему тоже выгоднее.");
+        add("Требования: китайская компания без иностранного участия — ни среди учредителей и юрлиц-участников, ни в лице генерального директора. Банк получателя — материковый Китай, кроме банков с американским участием.");
+        add("География: " + PROVINCES.join(", ") + ", а также " + CITIES.join(" и ") + ".");
+        gap();
+        add("Bank of Dandong, прямой платёж");
+        add("Юань уходит напрямую в банк получателя, без посредников в цепочке. В этом и смысл маршрута.");
+        add("Конвертация по нашему курсу AlfaFX — биржевой плюс одна копейка на юань. Не по банковскому курсу с наценкой в четверть рубля.");
+        add("Перевод 0,8%, минимум 3 000 ₽ — в начале года было 1,2%.");
+        add("Валютный контроль, конвертация и перевод вместе не превышают 1,8%. Выше этой цифры не выйдет ни при каком раскладе.");
+        ex(c.dandComm, c.dandPct);
+        add("С получателя в Китае комиссия " + CN_DANDONG + ", по редким санкционным позициям 0,2%.");
+      }
+
+      if (on.vtb) {
+        gap();
+        add("ПЛАТЕЖИ НА ВТБ ШАНХАЙ");
+        add("Для сравнения: сам банк удерживает 1,99% за платёж и 0,2% за валютный контроль, вместе 2,19%. Плюс " + CN_VTB + " с китайской стороны — это теряет ваш поставщик и закладывает в цену.");
+        add("Юань под такой платёж: в ВТБ комиссий нет, но в курсе сидит наценка 14–25 копеек на юань, и в тарифах её не показывают.");
+        add("У нас курс AlfaFX — биржа плюс копейка, конвертация 0,6%, перевод в ВТБ 0,3%. По эффективному курсу почти всегда выходит дешевле.");
+        if (has) add("Например, на " + rub(S) + " один только ВТБ Шанхай возьмёт " + rub(c.vtbFee) + " — и это без наценки в курсе.");
+        add("Если получатель проходит по клирингу, тот же платёж дешевле провести по курсу ЦБ, а деньги всё равно придут на счёт в ВТБ Шанхай.");
+      }
+
+      if (on.world) {
+        gap();
+        add("ПЛАТЕЖИ В ДРУГИЕ СТРАНЫ");
+        gap();
+        add("Импорт через финансового агента-нерезидента");
+        add("Платёж уходит от лица агента, ваш банк в цепочке не участвует. Конвертация по курсу ЦБ или по Investing, на ваш выбор.");
+        add("Ставка агента: до $50 000 — 1,4%, от $50 000 до $100 000 — 1,0%, свыше $100 000 — 0,8%. На платежи до $10 000 плюс фиксированные $100. Год назад те же ставки были 2,2%, 1,9% и 1,5%.");
+        add("Сверху валютный контроль 0,2%, минимум 1 200 ₽, и перевод агенту 0,15%, минимум 1 000 ₽. Всё вместе на крупных суммах не превышает 1,15%.");
+        ex(c.impComm, c.impPct);
+        gap();
+        add("Приём экспортной выручки");
+        add("Покупатель платит удобной ему валютой: доллар, евро, юань, дирхам, лира, тенге, гонконгский доллар, рупия. Конвертируем по курсу ЦБ и зачисляем рубли на ваш счёт в России.");
+        add("Комиссия 0,2% на любые суммы, было 0,5%. Больше ничего не удерживаем.");
+        if (has) add("Например, с " + rub(S) + " удержим " + rub(c.expComm) + ", на счёт придёт " + rub(c.expNet) + ".");
+        add("Страны: Китай и Гонконг, Турция, ОАЭ, Индия, Казахстан и ЕАЭС, Юго-Восточная Азия, Европа, Латинская Америка.");
+      }
+
+      gap();
+      add("Тарифы действуют до " + PROMO_UNTIL + ". Курс меняется каждый день, поэтому суммы в примерах ориентировочные.");
+      add("Работаем с 9:00 до 18:00 по Москве. Пришлите контракт или инвойс — посчитаю точно под вашу сделку и скажу, каким маршрутом её вести.");
+      gap();
+      add((f.manager || "Евгений Демин").trim());
+      add("Международные расчёты");
+      return L.join("\n");
+    }
+
+    const KP_DEFAULT = {
+      client: "", company: "", manager: "Евгений Демин",
+      task: NA,
+      blocks: { china: true, vtb: true, world: true },
+      amount: "1000000",
+    };
+    const PRESETS = [
+      { id: "all",   label: "Общее КП",      hint: "всё, что умеем",     blocks: { china: true,  vtb: true,  world: true  } },
+      { id: "china", label: "Китай",         hint: "клиринг и Dandong",  blocks: { china: true,  vtb: false, world: false } },
+      { id: "vtb",   label: "ВТБ Шанхай",    hint: "юань и комиссии",    blocks: { china: false, vtb: true,  world: false } },
+      { id: "world", label: "Другие страны", hint: "мир и экспорт",      blocks: { china: false, vtb: false, world: true  } },
+    ];
+    const BLOCK_LIST = [
+      { key: "china", label: "Платежи в Китай", sub: "клиринг, Bank of Dandong" },
+      { key: "vtb",   label: "ВТБ Шанхай",      sub: "покупка юаня и комиссии банка" },
+      { key: "world", label: "Другие страны",   sub: "импорт по миру и приём выручки" },
+    ];
+
+    function KpBuilder() {
+      const [f, setF] = useState(KP_DEFAULT);
+      const { rates: cbr, cbrDate, status: cbrStatus } = useCbr();
+      const moex = useMoexCny();
+      const set = (k) => (v) => setF((o) => Object.assign({}, o, { [k]: v }));
+      const toggleBlock = (k) => setF((o) => Object.assign({}, o, { blocks: Object.assign({}, o.blocks, { [k]: !o.blocks[k] }) }));
+      const applyPreset = (b) => setF((o) => Object.assign({}, o, { blocks: Object.assign({}, b) }));
+      const activePreset = PRESETS.find((p) => p.blocks.china === f.blocks.china && p.blocks.vtb === f.blocks.vtb && p.blocks.world === f.blocks.world);
+
+      /* стоимость по каждому маршруту на введённую сумму */
+      const S = parseNum(f.amount, 0);
+      const Rcb = cbr.CNY;
+      const Rmoex = moex.status === "ok" && moex.price ? moex.price : cbr.CNY;
+      const nAt = Rmoex > 0 ? S / Rmoex : 0;
+      const clearComm = Math.max(S * CLEARING_PCT, CLEARING_MIN);
+      const D = dandongCalc(nAt, Rmoex);
+      const vtbFee = S * (SH_PAY + SH_VC);
+      const usd = cbr.USD > 0 ? S / cbr.USD : 0;
+      const tier = tierFor(usd);
+      const impComm = S * tier.pct + tier.fix * cbr.USD + Math.max(S * VC_PCT, VC_MIN) + Math.max(S * FA_PCT, FA_MIN);
+      const expComm = S * EXPORT_PCT;
+      const c = {
+        clearComm, clearPct: S > 0 ? clearComm / S * 100 : 0, clearMin: S * CLEARING_PCT < CLEARING_MIN,
+        dandComm: D.comm, dandPct: D.pct,
+        vtbFee,
+        impComm, impPct: S > 0 ? impComm / S * 100 : 0,
+        expComm, expNet: S - expComm, tier,
+      };
+      const text = buildKp(f, c);
+      const noBlocks = !f.blocks.china && !f.blocks.vtb && !f.blocks.world;
+
+      return (
+        <section id="kp" className="slide">
+          <div className="wrap w-full">
+            <Head badge="Конструктор КП" icon={IcEdit} tone="gold"
+              title="Соберите коммерческое предложение"
+              text="По умолчанию собирается общее КП: Китай, ВТБ Шанхай и остальные страны. Впишите сумму сделки — в текст добавятся примеры вида «на такую сумму комиссия не превысит столько-то за всё»." />
+
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-3">
+              <div className="rise xl:col-span-4">
+                <div className="rounded-2xl card pad h-full">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                    <div className="text-[14px] font-semibold ink">Что войдёт в письмо</div>
+                    <button onClick={() => setF(KP_DEFAULT)} className="inline-flex items-center gap-1 text-[12.5px] ink-2 hover:ink"><IcRefresh size={13} />сбросить</button>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mb-2.5">
+                    {PRESETS.map((p) => {
+                      const on = activePreset && activePreset.id === p.id;
+                      return (
+                        <button key={p.id} onClick={() => applyPreset(p.blocks)} className={"rounded-lg px-2.5 py-2 text-left transition-all " + (on ? "btn-red" : "btn-ghost")}>
+                          <div className="text-[12.5px] font-semibold leading-tight">{p.label}</div>
+                          <div className={"text-[11px] leading-snug mt-0.5 " + (on ? "opacity-85" : "ink-3")}>{p.hint}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="space-y-1.5 mb-3">
+                    {BLOCK_LIST.map((b) => {
+                      const on = f.blocks[b.key];
+                      return (
+                        <button key={b.key} onClick={() => toggleBlock(b.key)} className="w-full rounded-lg px-3 py-2 text-left transition-all"
+                          style={on ? { background: "rgba(194,53,43,0.07)", border: "1px solid rgba(194,53,43,0.30)" } : { background: "#fbf8f4", border: "1px solid var(--line-2)" }}>
+                          <div className="row">
+                            <div className="row-l">
+                              <div className={"text-[13px] font-semibold " + (on ? "ink" : "ink-3")}>{b.label}</div>
+                              <div className="text-[11.5px] ink-3">{b.sub}</div>
+                            </div>
+                            <div className="row-r">
+                              <span className="inline-flex items-center justify-center w-5 h-5 rounded" style={on ? { background: "var(--red)" } : { border: "1px solid var(--line)", background: "#fff" }}>
+                                {on && <IcCheck size={12} stroke="#fff" />}
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                    {noBlocks && <div className="text-[12px] rounded-lg px-2.5 py-1.5" style={{ background: "rgba(194,53,43,0.08)", color: "var(--red-ink)" }}>Отметьте хотя бы один блок.</div>}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <Field label="Имя клиента"><input className="fld" value={f.client} onChange={(e) => set("client")(e.target.value)} placeholder="Иван Иванович" /></Field>
+                    <Field label="Компания"><input className="fld" value={f.company} onChange={(e) => set("company")(e.target.value)} placeholder="ООО «Ромашка»" /></Field>
+                    <Field label="Задача"><Sel value={f.task} onChange={set("task")} options={O_TASK} /></Field>
+                    <Field label="Сумма сделки для примера">
+                      <div className="relative">
+                        <input type="number" inputMode="decimal" min="0" value={f.amount} onChange={(e) => set("amount")(e.target.value)} className="fld num" style={{ paddingRight: "28px" }} />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[14px] ink-3">₽</span>
+                      </div>
+                    </Field>
+                  </div>
+
+                  {S > 0 && (
+                    <div className="mt-2.5 rounded-lg sunken p-2.5">
+                      <div className="text-[12px] font-semibold ink mb-1.5">На {rub(S)} комиссия не превысит</div>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {[
+                          { k: "Клиринг", v: pctStr(c.clearPct, 2), s: rub(c.clearComm), on: f.blocks.china, col: ALFA_RED },
+                          { k: "Dandong", v: pctStr(c.dandPct, 2), s: rub(c.dandComm), on: f.blocks.china, col: GOLD },
+                          { k: "Импорт", v: pctStr(c.impPct, 2), s: rub(c.impComm), on: f.blocks.world, col: GREEN },
+                          { k: "Экспорт", v: "0,20%", s: rub(c.expComm), on: f.blocks.world, col: VTB_BLUE },
+                        ].filter((x) => x.on).map((x, i) => (
+                          <div key={i} className="rounded-lg card-soft px-2.5 py-1.5">
+                            <div className="text-[11.5px] ink-3 leading-tight">{x.k}</div>
+                            <div className="text-[15px] font-bold num leading-tight" style={{ color: x.col }}>{x.v}</div>
+                            <div className="text-[11px] ink-3 num">{x.s}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="text-[11px] ink-3 mt-1.5">Курс ЦБ {cbrStatus === "loading" ? "…" : rate4(Rcb)}, биржа {moex.status === "ok" ? rate4(Rmoex) : "…"}.</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="rise xl:col-span-8" style={{ transitionDelay: "60ms" }}>
+                <KpBlock tall text={text} title={activePreset && activePreset.id === "all" ? "Общее коммерческое предложение" : "Коммерческое предложение"}
+                  note={S > 0 ? "Примеры посчитаны на " + rub(S) + " по живому курсу." : "Впишите сумму сделки, чтобы в письме появились примеры расчёта."} />
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+    /* ================= КОНТАКТЫ ================= */
+    function Contacts({ onPick }) {
+      return (
+        <section id="contacts" className="w-full py-8 md:py-10">
+          <div className="wrap">
+            <div className="rise rounded-2xl card emboss pad">
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-center">
+                <div className="xl:col-span-7">
+                  <div className="mb-2"><Badge tone="red" icon={IcZap}>Следующий шаг</Badge></div>
+                  <h2 className="text-[22px] sm:text-[28px] font-semibold tracking-tight ink mb-2" style={{ letterSpacing: "-0.03em" }}>Подберу схему под вашу сделку</h2>
+                  <p className="text-[13.5px] ink-2 leading-relaxed max-w-2xl">Клиринг, Bank of Dandong, прямой платёж или связка через агента — выбор зависит от суммы, страны, товара и сроков. Пришлите контракт, посчитаю точные цифры. Тарифы держим до {PROMO_UNTIL}.</p>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <Ext href={TG} className="flex items-center gap-2 rounded-full btn-red px-5 py-2.5 font-medium text-[14px]">Telegram<IcArrow size={16} /></Ext>
+                    <Ext href={PHONE} title={PHONE_TITLE} className="flex items-center gap-2 rounded-full btn-ghost px-5 py-2.5 font-medium text-[14px]"><IcPhone size={16} />{PHONE_DISPLAY}</Ext>
+                    <Jump to="calc" className="flex items-center gap-2 rounded-full btn-ghost px-5 py-2.5 font-medium text-[14px]"><IcCalc size={16} />Калькулятор</Jump>
+                  </div>
+                </div>
+                <div className="xl:col-span-5">
+                  <WorkHours />
+                  <div className="hidden sm:grid grid-cols-2 lg:grid-cols-3 gap-1.5 mt-2">
+                    {TABS.map((t) => (
+                      <button key={t.id} onClick={() => onPick(t.id)} className="tab">
+                        <div className="flex items-center gap-1.5">
+                          <t.Ic size={15} className="shrink-0" style={{ color: "var(--red)" }} />
+                          <span className="text-[12.5px] font-semibold ink leading-tight">{t.short}</span>
+                          <span className="ml-auto text-[12px] font-bold num" style={{ color: "var(--red)" }}>{t.price}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[12px] ink-3" style={{ borderTop: "1px solid var(--line-2)" }}>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="flex items-center gap-1.5"><IcGlobe size={14} style={{ color: "var(--red)" }} /><span className="font-semibold ink">Евгений Демин</span> · международные расчёты</span>
+                  <button onClick={() => { try { location.reload(); } catch (e) {} }} className="inline-flex items-center gap-1 ink-3 hover:ink"><IcLock size={12} />закрыть доступ</button>
+                </div>
+                <div>Расчёты ориентировочные. Финальные условия фиксируются перед сделкой.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    /* ================= ПРИЛОЖЕНИЕ ================= */
+    function App() {
+      const [tab, setTab] = useState("import");
+      const pick = (id) => { setTab(id); setTimeout(() => goTo(null, "calc"), 30); };
+      useEffect(() => {
+        const els = Array.prototype.slice.call(document.querySelectorAll(".rise"));
+        if (!("IntersectionObserver" in window)) { els.forEach((el) => el.classList.add("in")); return; }
+        const io = new IntersectionObserver((entries) => {
+          entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+        }, { threshold: 0.05, rootMargin: "0px 0px -4% 0px" });
+        els.forEach((el) => io.observe(el));
+        return () => io.disconnect();
+      }, []);
+      return (
+        <React.Fragment>
+          <Hero onPick={pick} />
+          <Promo onPick={pick} />
+          <Pressure onPick={pick} />
+          <CalcHub tab={tab} setTab={setTab} />
+          <KpBuilder />
+          <Contacts onPick={pick} />
+        </React.Fragment>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<Gate><App /></Gate>);
+  </script>
+
+  <script>
+    (function () {
+      var src = document.getElementById("app-src").textContent;
+      var out = Babel.transform(src, { presets: [["react", { runtime: "classic" }]] }).code;
+      (0, eval)(out);
+    })();
+  </script>
+</body>
+</html>
